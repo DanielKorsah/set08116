@@ -15,7 +15,7 @@ bool load_content() {
   vector<vec3> positions{
       // *********************************
       // Add the three positions of the triangle corners here
-
+	  vec3(0, 1, 0), vec3(-1, -1, 0), vec3(1, -1, 0)
       // *********************************
   };
   // Colours
