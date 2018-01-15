@@ -58,7 +58,7 @@ bool render() {
   // Create rotation matrix and scale matrix
   // Set M to be the combination of scale and rotation - make sure you have the correct order
   S = scale(mat4(1.0f), vec3(3, 5, 7));
-  R = rotate(mat4(1.0f), theta, vec3(0, 1, 0));
+  R = rotate(mat4(1.0f), theta, vec3(0, 0, 1));
   M = R * S;
   // *********************************
   // Create MVP matrix
