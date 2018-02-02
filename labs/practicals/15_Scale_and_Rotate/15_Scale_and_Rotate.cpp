@@ -10,7 +10,7 @@ effect eff;
 target_camera cam;
 float s = 0.0f;
 float total_time = 0.0f;
-float theta = 0.0f;
+float theta = 90.0f;
 
 bool load_content() {
   // Create triangle data
@@ -57,9 +57,9 @@ bool render() {
   // *********************************
   // Create rotation matrix and scale matrix
   // Set M to be the combination of scale and rotation - make sure you have the correct order
-
-
-
+  S = scale(mat4(1.0f), vec3(3, 5, 7));
+  R = rotate(mat4(1.0f), theta, vec3(0, 0, 1));
+  M = R * S;
   // *********************************
   // Create MVP matrix
   auto V = cam.get_view();

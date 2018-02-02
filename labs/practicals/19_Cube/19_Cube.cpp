@@ -18,23 +18,23 @@ bool load_content() {
       // *********************************
       // Add the position data for triangles here, (6 verts per side)
       // Front
-
-
+	  vec3(-1.0f, -1.0f, 1.0f), vec3(1.0f, -1.0f, 1.0f), vec3(1.0f, 1.0f, 1.0f),
+	  vec3(1.0f, 1.0f, 1.0f), vec3(-1.0f, 1.0f, 1.0f), vec3(-1.0f, -1.0f, 1.0f),
       // Back
-
-
+	  vec3(-1.0f, -1.0f, -1.0f), vec3(-1.0f, 1.0f, -1.0f), vec3(1.0f, 1.0f, -1.0f),
+	  vec3(1.0f, 1.0f, -1.0f), vec3(1.0f, -1.0f, -1.0f), vec3(-1.0f, -1.0f, -1.0f),
       // Right
-
-
+	  vec3(1.0f, 1.0f, 1.0f), vec3(1.0f, -1.0f, 1.0f), vec3(1.0f, -1.0f, -1.0f),
+	  vec3(1.0f, -1.0f, -1.0f), vec3(1.0f, 1.0f, -1.0f), vec3(1.0f, 1.0f, 1.0f),
       // Left
-
-
+	  vec3(-1.0f, 1.0f, 1.0f), vec3(-1.0f, 1.0f, -1.0f), vec3(-1.0f, -1.0f, -1.0f),
+	  vec3(-1.0f, -1.0f, -1.0f), vec3(-1.0f, -1.0f, 1.0f), vec3(-1.0f, 1.0f, 1.0f),
       // Top
-
-
+	  vec3(1.0f, 1.0f, -1.0f), vec3(-1.0f, 1.0f, -1.0f), vec3(-1.0f, 1.0f, 1.0f),
+	  vec3(-1.0f, 1.0f, 1.0f), vec3(1.0f, 1.0f, 1.0f), vec3(1.0f, 1.0f, -1.0f),
       // Bottom
-
-
+	  vec3(-1.0f, -1.0f, -1.0f), vec3(1.0f, -1.0f, -1.0f), vec3(1.0f, -1.0f, 1.0f),
+	  vec3(1.0f, -1.0f, 1.0f), vec3(-1.0f, -1.0f, 1.0f), vec3(-1.0f, -1.0f, -1.0f)
       // *********************************
   };
   // Colours
@@ -53,7 +53,7 @@ bool load_content() {
   eff.build();
 
   // Set camera properties
-  cam.set_position(vec3(10.0f, 10.0f, 10.0f));
+  cam.set_position(vec3(0.0f, 0.0f, 5.0f));
   cam.set_target(vec3(0.0f, 0.0f, 0.0f));
   auto aspect = static_cast<float>(renderer::get_screen_width()) / static_cast<float>(renderer::get_screen_height());
   cam.set_projection(quarter_pi<float>(), aspect, 2.414f, 1000.0f);
