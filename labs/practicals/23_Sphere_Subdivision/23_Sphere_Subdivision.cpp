@@ -18,13 +18,13 @@ void divide_triangle(const vector<vec3> &points, int divisions, vector<vec3> &po
   if (divisions > 0) {
     // *********************************
     // Calculate new vertices to work on (Normalize each element!)
-
+	  vector<vec3> v = { normalize(points[0] + points[1]), normalize(points[0] + points[2]), normalize(points[1] + points[2]) };
 
     // Divide new triangles
-
-
-
-
+	  divide_triangle({ points[0], v[0], v[1] }, divisions - 1, positions, colours);
+	  divide_triangle({ points[2], v[1], v[2] }, divisions - 1, positions, colours);
+	  divide_triangle({ points[1], v[2], v[0] }, divisions - 1, positions, colours);
+	  divide_triangle({ v[0], v[2], v[1] }, divisions - 1, positions, colours);
     // *********************************
   } else {
     positions.insert(positions.end(), points.begin(), points.end());
@@ -35,6 +35,8 @@ void divide_triangle(const vector<vec3> &points, int divisions, vector<vec3> &po
 }
 
 bool load_content() {
+	geom.set_type(GL_LINES);
+
   // Required buffers
   vector<vec3> positions;
   vector<vec4> colours;
