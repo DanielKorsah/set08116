@@ -16,7 +16,7 @@ bool load_content() {
 
   // *********************************
   // box
-
+  meshes["box"] = mesh(geometry_builder::create_box());
   // Tetrahedron
 
   // Pyramid

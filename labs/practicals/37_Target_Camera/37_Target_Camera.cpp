@@ -52,7 +52,7 @@ bool load_content() {
 
   // Set camera properties
   cam.set_position(vec3(50.0f, 10.0f, 50.0f));
-  cam.set_target(vec3(0.0f, 0.0f, 0.0f));
+  cam.set_target(vec3(meshes["sphere"].get_transform().position));
   cam.set_projection(quarter_pi<float>(), renderer::get_screen_aspect(), 0.1f, 1000.0f);
   return true;
 }
@@ -61,23 +61,23 @@ bool update(float delta_time) {
   // *********************************
   // Use keyboard to change camera location
   // 1 - (50, 10, 50)
-
-
-
+	if (glfwGetKey(renderer::get_window(), GLFW_KEY_1)) {
+		cam.set_position(vec3(50, 10, 50));
+	}
   // 2 - (-50, 10, 50)
-
-
-
+	if (glfwGetKey(renderer::get_window(), GLFW_KEY_2)) {
+		cam.set_position(vec3(-50, 10, 50));
+	}
   // 3 - (-50, 10, -50)
-
-
-
+	if (glfwGetKey(renderer::get_window(), GLFW_KEY_3)) {
+		cam.set_position(vec3(-50, 10, -50));
+	}
   // 4 - (50, 10, -50)
-
-
-
+	if (glfwGetKey(renderer::get_window(), GLFW_KEY_4)) {
+		cam.set_position(vec3(50, 10, -50));
+	}
   // Update the camera
-
+	cam.update(delta_time);
   // *********************************
 
   return true;
