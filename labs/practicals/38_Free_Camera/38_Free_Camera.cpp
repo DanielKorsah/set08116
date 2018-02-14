@@ -15,9 +15,9 @@ double cursor_y = 0.0;
 bool initialise() {
   // *********************************
   // Set input mode - hide the cursor
-
+	glfwSetInputMode(renderer::get_window(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
   // Capture initial mouse position
-
+	glfwGetCursorPos(renderer::get_window(), &cursor_x, &cursor_y);
   // *********************************
   return true;
 }
@@ -81,38 +81,50 @@ bool update(float delta_time) {
   double current_y;
   // *********************************
   // Get the current cursor position
-
+  glfwGetCursorPos(renderer::get_window(), &current_x, &current_y);
   // Calculate delta of cursor positions from last frame
-
-
+  double delta_x = current_x - cursor_x;
+  double delta_y = current_y - cursor_y;
   // Multiply deltas by ratios - gets actual change in orientation
-
-
+  delta_x *= ratio_width;
+  delta_y *= ratio_height;
   // Rotate cameras by delta
   // delta_y - x-axis rotation
   // delta_x - y-axis rotation
-
+  cam.rotate(delta_x, -delta_y);
   // Use keyboard to move the camera - WSAD
+  vec3 forward, back, left, right, up, down;
+  forward = vec3(0, 0, 0);
+  back = vec3(0, 0, 0);
+  left = vec3(0, 0, 0);
+  right = vec3(0, 0, 0);
+  up = vec3(0, 0, 0);
+  down = vec3(0);
+  vec3 total = vec3(0);
 
-
-
-
-
-
-
-
-
-
-
-
-
+  if (glfwGetKey(renderer::get_window(), GLFW_KEY_W))
+	  forward = vec3(0.0f, 0.0f, 1.0f);
+  if (glfwGetKey(renderer::get_window(), GLFW_KEY_S))
+	  back = vec3(0.0f, 0.0f, -1.0f);
+  if (glfwGetKey(renderer::get_window(), GLFW_KEY_A))
+	  left = vec3(-1.0f, 0.0f, 0.0f);
+  if (glfwGetKey(renderer::get_window(), GLFW_KEY_D))
+	  right = vec3(1.0f, 0.0f, 0.0f);
+  if (glfwGetKey(renderer::get_window(), GLFW_KEY_SPACE)) {
+	  up = vec3(0, 1.0f, 0);
+  }
+  if (glfwGetKey(renderer::get_window(), GLFW_KEY_LEFT_CONTROL)) {
+	  left = vec3(0, -1, 0);
+  }
   // Move camera
-
+  total = forward + back + left + right + up + down;
+  if(total!= vec3(0))
+	cam.move(normalize(total)* delta_time * 10.0f);
   // Update the camera
-
+  cam.update(delta_time);
   // Update cursor pos
-
-
+  cursor_x = current_x;
+  cursor_y = current_y;
   // *********************************
   return true;
 }
