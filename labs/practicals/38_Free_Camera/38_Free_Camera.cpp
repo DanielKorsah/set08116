@@ -93,13 +93,7 @@ bool update(float delta_time) {
   // delta_x - y-axis rotation
   cam.rotate(delta_x, -delta_y);
   // Use keyboard to move the camera - WSAD
-  vec3 forward, back, left, right, up, down;
-  forward = vec3(0, 0, 0);
-  back = vec3(0, 0, 0);
-  left = vec3(0, 0, 0);
-  right = vec3(0, 0, 0);
-  up = vec3(0, 0, 0);
-  down = vec3(0);
+  vec3 forward = vec3(0), back = vec3(0), left = vec3(0), right = vec3(0), up = vec3(0), down = vec3(0);
   vec3 total = vec3(0);
 
   if (glfwGetKey(renderer::get_window(), GLFW_KEY_W))
@@ -110,12 +104,11 @@ bool update(float delta_time) {
 	  left = vec3(-1.0f, 0.0f, 0.0f);
   if (glfwGetKey(renderer::get_window(), GLFW_KEY_D))
 	  right = vec3(1.0f, 0.0f, 0.0f);
-  if (glfwGetKey(renderer::get_window(), GLFW_KEY_SPACE)) {
+  if (glfwGetKey(renderer::get_window(), GLFW_KEY_SPACE))
 	  up = vec3(0, 1.0f, 0);
-  }
-  if (glfwGetKey(renderer::get_window(), GLFW_KEY_LEFT_CONTROL)) {
+  if (glfwGetKey(renderer::get_window(), GLFW_KEY_LEFT_CONTROL))
 	  left = vec3(0, -1, 0);
-  }
+
   // Move camera
   total = forward + back + left + right + up + down;
   if(total!= vec3(0))
