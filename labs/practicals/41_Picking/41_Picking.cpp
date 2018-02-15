@@ -57,40 +57,49 @@ bool load_content() {
 }
 
 bool update(float delta_time) {
-  if (glfwGetKey(renderer::get_window(), '1'))
-    cam.set_position(vec3(50, 10, 50));
-  if (glfwGetKey(renderer::get_window(), '2'))
-    cam.set_position(vec3(-50, 10, 50));
-  if (glfwGetKey(renderer::get_window(), '3'))
-    cam.set_position(vec3(-50, 10, -50));
-  if (glfwGetKey(renderer::get_window(), '4'))
-    cam.set_position(vec3(50, 10, -50));
+	if (glfwGetKey(renderer::get_window(), '1'))
+		cam.set_position(vec3(50, 10, 50));
+	if (glfwGetKey(renderer::get_window(), '2'))
+		cam.set_position(vec3(-50, 10, 50));
+	if (glfwGetKey(renderer::get_window(), '3'))
+		cam.set_position(vec3(-50, 10, -50));
+	if (glfwGetKey(renderer::get_window(), '4'))
+		cam.set_position(vec3(50, 10, -50));
 
-  // *********************************
-  // Update the camera
+	// *********************************
+	// Update the camera
+	cam.update(delta_time);
+	// If mouse button pressed get ray and check for intersection
+	if (glfwGetMouseButton(renderer::get_window(), GLFW_MOUSE_BUTTON_1))
+	{
+		// Get the mouse position
+		double cursor_x = 0.0, cursor_y = 0.0;
+		glfwGetCursorPos(renderer::get_window(), &cursor_x, &cursor_y);
+		// Origin and direction of the ray
+		vec3 origin = cam.get_position();
+		vec3 direction;
+		// Convert mouse position to ray
+		float xx = ((2 * cursor_x) / renderer::get_screen_width())-1;
+		float yy = ((2 * (renderer::get_screen_height() - cursor_y)) / renderer::get_screen_height()) - 1;
+		vec4 ray_start_screen = vec4(xx, yy, -1, 1);
+		vec4 ray_end_screen = vec4(xx, yy, 0, 1);
+		mat4 inverse_matrix = inverse(cam.get_projection() * cam.get_view());
+		vec4 ray_start_world = inverse_matrix * ray_start_screen;
+		ray_start_world = ray_start_world / ray_start_world.w;
+		vec4 ray_end_world = inverse_matrix * ray_end_screen;
+		ray_end_world = ray_end_world / ray_end_world.w;
 
-  // If mouse button pressed get ray and check for intersection
-
-    // Get the mouse position
-
-
-
-    // Origin and direction of the ray
-
-
-    // Convert mouse position to ray
-
-
-    // *********************************
-    // Check all the mehes for intersection
-    for (auto &m : meshes) {
-      float distance = 0.0f;
-      if (test_ray_oobb(origin, direction, m.second.get_minimal(), m.second.get_maximal(),
-                        m.second.get_transform().get_transform_matrix(), distance))
-        cout << m.first << " " << distance << endl;
-    }
-  }
-
+		direction = ray_end_world - ray_start_world;
+		origin = ray_start_world;
+		// *********************************
+		// Check all the mehes for intersection
+		for (auto &m : meshes) {
+			float distance = 0.0f;
+			if (test_ray_oobb(origin, direction, m.second.get_minimal(), m.second.get_maximal(),
+				m.second.get_transform().get_transform_matrix(), distance))
+				cout << m.first << " " << distance << endl;
+		}
+	}
   return true;
 }
 
