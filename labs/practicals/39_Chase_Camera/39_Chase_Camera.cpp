@@ -119,7 +119,7 @@ bool update(float delta_time) {
   if (glfwGetKey(renderer::get_window(), 'D')) {
 	  meshes["chaser"].get_transform().position += vec3(5.0f, 0.0f, 0.0f) * delta_time;
   }
-   vec3 total = 
+
   // Move camera - update target position and rotation
   cam.move(cam.get_position()-cam.get_target_pos(), eulerAngles(meshes["chaser"].get_transform().orientation));
   // Update the camera
