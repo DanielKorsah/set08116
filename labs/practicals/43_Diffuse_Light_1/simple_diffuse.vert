@@ -24,7 +24,7 @@ void main() {
   // Calculate k
   float k = max(dot(normal, light_dir), 0);
   // Calculate diffuse
-  vec4 diffuse = dot(k, material_colour * light_colour);
+  vec4 diffuse = k * (material_colour * light_colour);
   // Ensure alpha is 1
   diffuse.z = 1;
   // Output vertex colour - just diffuse
