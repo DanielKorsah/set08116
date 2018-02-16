@@ -47,7 +47,7 @@ bool load_content() {
   // - all specular is white
   // - all shininess is 25
   // Red box
-
+  m
 
 
 

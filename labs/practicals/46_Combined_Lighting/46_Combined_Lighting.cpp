@@ -94,7 +94,7 @@ bool render() {
     // Set N matrix uniform - remember - 3x3 matrix
 	glUniformMatrix3fv(eff.get_uniform_location("N"), 1, GL_FALSE, value_ptr(m.get_transform().get_normal_matrix()));
     // Set ambient intensity - (0.3, 0.3, 0.3, 1.0)
-	glUniform4fv(eff.get_uniform_location("ambient_intensity"), 1, value_ptr(vec4(0.3f, 0.3f, 0.3f, 1.0f)));
+	glUniform4fv(eff.get_uniform_location("ambient_intensity"), 1, value_ptr(vec4(0.3f, 0.3f, 0.3f, 0.3f)));
     // Set light colour - (1.0, 1.0, 1.0, 1.0)
 	glUniform4fv(eff.get_uniform_location("light_colour"), 1, value_ptr(vec4(1, 1, 1, 1)));
     // Set light direction - (1.0, 1.0, -1.0)
@@ -104,14 +104,14 @@ bool render() {
     // Set specular reflection - white
 	glUniform4fv(eff.get_uniform_location("specular_reflection"), 1, value_ptr(vec4(1, 1, 1, 1)));
     // Set shininess - Use 50.0f
-	glUniform1f(eff.get_uniform_location("shininess"), 7.0f);
+	glUniform1f(eff.get_uniform_location("shininess"), 3.0f);
     // Set eye position - Get this from active camera
 	glUniform3fv(eff.get_uniform_location("eye_pos"), 1, value_ptr(cam.get_position()));
     // *********************************
     // Render mesh
     renderer::render(m);
   }
-
+  
   return true;
 }
 
