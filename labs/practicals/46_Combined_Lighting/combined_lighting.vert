@@ -36,7 +36,7 @@ void main() {
   // Transform the normal
   vec3 transformed_normal = N * normal;
   // Calculate k
-  float k = max(dot(transformed_normal,light_dir), 0);
+  float k = max(dot(transformed_normal,light_dir), 0.0f);
   // Calculate diffuse
   vec4 diffuse = k * (diffuse_reflection * light_colour);
   // Calculate world position of vertex
@@ -46,9 +46,9 @@ void main() {
   // Calculate half vector between view_dir and light_dir
   vec3 half_vec = normalize(light_dir + view_dir);
   // Calculate k
-  k = pow(max(dot(transformed_normal, half_vec), 0), shininess);
+  float k2 = pow(max(dot(transformed_normal, half_vec), 0.0f), shininess);
   // Calculate specular
-  vec4 specular = k * (specular_reflection * light_colour);
+  vec4 specular = k2 * specular_reflection * light_colour;
   // Output combined components
   vertex_colour = ambient + diffuse + specular;
   // *********************************
