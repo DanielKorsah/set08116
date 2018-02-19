@@ -104,7 +104,7 @@ bool render() {
     // Set specular reflection - white
 	glUniform4fv(eff.get_uniform_location("specular_reflection"), 1, value_ptr(vec4(1, 1, 1, 1)));
     // Set shininess - Use 50.0f
-	glUniform1f(eff.get_uniform_location("shininess"), 50.0f);
+	glUniform1f(eff.get_uniform_location("shininess"), 4.0f);
     // Set eye position - Get this from active camera
 	glUniform3fv(eff.get_uniform_location("eye_pos"), 1, value_ptr(cam.get_position()));
     // *********************************
