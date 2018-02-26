@@ -47,56 +47,47 @@ bool load_content() {
   // - all specular is white
   // - all shininess is 25
   // Red box
-
-
-
-
+  material mat;
+  mat.set_emissive(vec4(0.0f, 0.0f, 0.0f, 1.0f));
+  mat.set_specular(vec4(1.0f));
+  mat.set_shininess(25.0f);
+  // Red box
+  mat.set_diffuse(vec4(1.0f, 0.0f, 0.0f, 1.0f));
+  meshes["box"].set_material(mat);
   // Green tetra
-
-
-
-
+  mat.set_diffuse(vec4(0.0f, 1.0f, 0.0f, 1.0f));
+  meshes["tetra"].set_material(mat);
   // Blue pyramid
-
-
-
-
-  // Yellow disk
-
-
-
-
+  mat.set_diffuse(vec4(0.0f, 0.0f, 1.0f, 1.0f));
+  meshes["pyramid"].set_material(mat);
+  // Yellow diskkkkkkkkkkkk
+  mat.set_diffuse(vec4(1.0f, 1.0f, 0.0f, 1.0f));
+  meshes["disk"].set_material(mat);
   // Magenta cylinder
-
-
-
-
+  mat.set_diffuse(vec4(1.0f, 0.0f, 1.0f, 1.0f));
+  meshes["cylinder"].set_material(mat);
   // Cyan sphere
-
-
-
-
+  mat.set_diffuse(vec4(0.0f, 1.0f, 1.0f, 1.0f));
+  meshes["sphere"].set_material(mat);
   // White torus
-
-
-
-
+  mat.set_diffuse(vec4(1.0f));
+  meshes["torus"].set_material(mat);
   // *********************************
 
   // Load texture
   tex = texture("textures/checker.png");
   // *********************************
   // Set lighting values, Position (-25, 10, -10)
-
+  light.set_position(vec3(-25, 10, -10));
   // Light colour white
-
+  light.set_light_colour(vec4(1, 1, 1, 1));
   // Set range to 20
-
+  light.set_range(20);
   // Load in shaders
-
-
+  eff.add_shader("49_Point_Light/points.vert", GL_VERTEX_SHADER);
+  eff.add_shader("49_Point_Light/point.frag", GL_FRAGMENT_SHADER);
   // Build effect
-
+  eff.build();
   // *********************************
 
   // Set camera properties
