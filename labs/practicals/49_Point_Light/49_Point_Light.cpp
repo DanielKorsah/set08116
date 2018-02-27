@@ -104,7 +104,7 @@ bool update(float delta_time) {
 
   float speed = 10 * delta_time;
   static float constant = 0.0f;
-
+  light.set_constant_attenuation(1.0f);
   if (glfwGetKey(renderer::get_window(), GLFW_KEY_W))
   {
 	  light.set_position(vec3(light.get_position().x, light.get_position().y, light.get_position().z - speed));
@@ -121,6 +121,7 @@ bool update(float delta_time) {
   {
 	  light.set_position(vec3(light.get_position().x + speed, light.get_position().y, light.get_position().z));
   }
+  //shift and space to change height
   if (glfwGetKey(renderer::get_window(), GLFW_KEY_SPACE))
   {
 	  light.set_position(vec3(light.get_position().x, light.get_position().y + speed, light.get_position().z));
@@ -147,9 +148,10 @@ bool update(float delta_time) {
 	  constant += 1.0f * delta_time;
   }
   // *********************************
-
+  
   // Set range
   light.set_range(range);
+  light.set_constant_attenuation(constant);
 
   // Rotate the sphere
   meshes["sphere"].get_transform().rotate(vec3(0.0f, half_pi<float>(), 0.0f) * delta_time);
