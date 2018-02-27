@@ -84,7 +84,7 @@ bool load_content() {
   // Set range to 20
   light.set_range(20);
   // Load in shaders
-  eff.add_shader("49_Point_Light/points.vert", GL_VERTEX_SHADER);
+  eff.add_shader("49_Point_Light/point.vert", GL_VERTEX_SHADER);
   eff.add_shader("49_Point_Light/point.frag", GL_FRAGMENT_SHADER);
   // Build effect
   eff.build();
@@ -100,39 +100,52 @@ bool load_content() {
 bool update(float delta_time) {
   // Range of the point light
   static float range = 20.0f;
-  // *********************************
+  //********************************
 
+  float speed = 10 * delta_time;
+  static float constant = 0.0f;
 
-
-
-
-
-
-
-
-
-
-
-  // WSAD to move point light
-
-
-
-
-
-
-
-
-
-
-
-
+  if (glfwGetKey(renderer::get_window(), GLFW_KEY_W))
+  {
+	  light.set_position(vec3(light.get_position().x, light.get_position().y, light.get_position().z - speed));
+  }
+  if (glfwGetKey(renderer::get_window(), GLFW_KEY_S))
+  {
+	  light.set_position(vec3(light.get_position().x, light.get_position().y, light.get_position().z + speed));
+  }
+  if (glfwGetKey(renderer::get_window(), GLFW_KEY_A))
+  {
+	  light.set_position(vec3(light.get_position().x - speed, light.get_position().y, light.get_position().z));
+  }
+  if (glfwGetKey(renderer::get_window(), GLFW_KEY_D))
+  {
+	  light.set_position(vec3(light.get_position().x + speed, light.get_position().y, light.get_position().z));
+  }
+  if (glfwGetKey(renderer::get_window(), GLFW_KEY_SPACE))
+  {
+	  light.set_position(vec3(light.get_position().x, light.get_position().y + speed, light.get_position().z));
+  }
+  if (glfwGetKey(renderer::get_window(), GLFW_KEY_LEFT_SHIFT))
+  {
+	  light.set_position(vec3(light.get_position().x, light.get_position().y - speed, light.get_position().z));
+  }
   // O and P to change range
-
-
-
-
-
-
+  if (glfwGetKey(renderer::get_window(), GLFW_KEY_P))
+  {
+	  range += 10.0f * delta_time;
+  }
+  if (glfwGetKey(renderer::get_window(), GLFW_KEY_O))
+  {
+	  range -= 10.0f * delta_time;
+  }
+  if (glfwGetKey(renderer::get_window(), GLFW_KEY_L))
+  {
+	  constant -= 1.0f * delta_time;
+  }
+  if (glfwGetKey(renderer::get_window(), GLFW_KEY_K))
+  {
+	  constant += 1.0f * delta_time;
+  }
   // *********************************
 
   // Set range
@@ -165,21 +178,21 @@ bool render() {
 
     // *********************************
     // Set M matrix uniform
-
+	glUniformMatrix4fv(eff.get_uniform_location("M"), 1, GL_FALSE, value_ptr(M));
     // Set N matrix uniform - remember - 3x3 matrix
-
+	glUniformMatrix3fv(eff.get_uniform_location("N"), 1, GL_FALSE, value_ptr(m.get_transform().get_normal_matrix()));
     // Bind material
-
+	renderer::bind(m.get_material(), "mat");
     // Bind light
-
+	renderer::bind(light, "point");
     // Bind texture
-
+	renderer::bind(tex, 0);
     // Set tex uniform
-
+	glUniform1i(eff.get_uniform_location("tex"), 0);
     // Set eye position- Get this from active camera
-
+	glUniform3fv(eff.get_uniform_location("eye_pos"), 1, value_ptr(cam.get_position()));
     // Render mesh
-
+	renderer::render(m);
     // *********************************
   }
 
