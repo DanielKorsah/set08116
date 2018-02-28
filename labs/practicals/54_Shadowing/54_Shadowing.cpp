@@ -180,7 +180,7 @@ bool render() {
 		// viewmatrix from the shadow map
 		auto viewMatrix = shadow.get_view();
 		// Multiply together with LightProjectionMat
-		LightProjectionMat = M * viewMatrix;
+		LightProjectionMat = LightProjectionMat * shadow.get_view() * M;
 		// Set uniform
 		glUniformMatrix4fv(main_eff.get_uniform_location("lightMVP"), 1, GL_FALSE, value_ptr(LightProjectionMat));
 		// Bind material
