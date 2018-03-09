@@ -432,7 +432,6 @@ bool render() {
 		// Render mesh
 		renderer::render(m);
 	}
-
 	
 	//render skybox after others for minor optimisation
 	{
