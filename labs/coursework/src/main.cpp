@@ -171,7 +171,7 @@ bool load_content() {
 		f_cam.set_projection(half_pi<float>(), renderer::get_screen_aspect(), 0.1f, 4000.0f);
 
 		//set chase cam roperties
-		c_cam.set_pos_offset(vec3(0.0f, 3.0f, -10.0f));
+		c_cam.set_pos_offset(vec3(-30.0f, 30.0f, -30.0f));
 		c_cam.set_springiness(0.5f);
 
 		//set target camera properties
@@ -182,7 +182,7 @@ bool load_content() {
 	//spawn skybox
 	{
 		skybox = mesh(geometry_builder::create_box());
-		skybox.get_transform().scale = vec3(100, 100, 100);
+		skybox.get_transform().scale = vec3(1000, 1000, 1000);
 	}
 	
 
@@ -461,15 +461,15 @@ bool render() {
 		glDepthMask(GL_FALSE);
 		glDisable(GL_CULL_FACE);
 
-		//renderer::bind(sky_eff);
-		////remember auto appears unsafe for this use
-		//mat4 MVP = P * V * M;
-		////set cubemap uniform
-		//glUniformMatrix4fv(sky_eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
-		//renderer::bind(sky_cube, 0);
-		//glUniform1i(sky_eff.get_uniform_location("cubemap"), 0);
+		renderer::bind(sky_eff);
+		//remember auto appears unsafe for this use
+		mat4 MVP = P * V * M;
+		//set cubemap uniform
+		glUniformMatrix4fv(sky_eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
+		renderer::bind(sky_cube, 0);
+		glUniform1i(sky_eff.get_uniform_location("cubemap"), 0);
 		//renderer::render(skybox);
-		//cout << "skybox" << endl;
+		cout << "skybox" << endl;
 
 		glEnable(GL_DEPTH_TEST);
 		glDepthMask(GL_TRUE);
