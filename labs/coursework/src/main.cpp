@@ -328,6 +328,49 @@ bool update(float delta_time)
 }
 
 bool render() {
+
+	//render skybox 
+	{
+		mat4 M = skybox.get_transform().get_transform_matrix();
+		mat4 P;
+		mat4 V;
+		//get different projections from different cameras
+		if (c1)
+		{
+			V = f_cam.get_view();
+			P = f_cam.get_projection();
+		}
+		if (c2)
+		{
+			V = c_cam.get_view();
+			P = c_cam.get_projection();
+		}
+		if (c3)
+		{
+			V = t_cam.get_view();
+			P = t_cam.get_projection();
+		}
+
+
+		glDisable(GL_DEPTH_TEST);
+		glDepthMask(GL_FALSE);
+		glDisable(GL_CULL_FACE);
+
+		renderer::bind(sky_eff);
+		//remember auto appears unsafe for this use
+		mat4 MVP = P * V * M;
+		//set cubemap uniform
+		glUniformMatrix4fv(sky_eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
+		renderer::bind(sky_cube, 0);
+		glUniform1i(sky_eff.get_uniform_location("cubemap"), 0);
+		renderer::render(skybox);
+		cout << "skybox" << endl;
+
+		glEnable(GL_DEPTH_TEST);
+		glDepthMask(GL_TRUE);
+		glEnable(GL_CULL_FACE);
+	}
+
 	// Render meshes
 	for (auto &e : meshes) {
 		mesh m = e.second;
@@ -381,8 +424,8 @@ bool render() {
 			renderer::bind(tex["dino2"], 1);
 			renderer::bind(tex["dino3"], 2);
 			glUniform1i(eff.get_uniform_location("tex"), 0);
-			glUniform1i(eff.get_uniform_location("tex"), 1);
-			glUniform1i(eff.get_uniform_location("tex"), 2);
+			//glUniform1i(eff.get_uniform_location("tex"), 1);
+			//glUniform1i(eff.get_uniform_location("tex"), 2);
 			cout << e.first << endl;
 		}
 
@@ -436,47 +479,7 @@ bool render() {
 		renderer::render(m);
 	}
 	
-	//render skybox after others for minor optimisation
-	{
-		mat4 M = skybox.get_transform().get_transform_matrix();
-		mat4 P;
-		mat4 V;
-		//get different projections from different cameras
-		if (c1)
-		{
-			V = f_cam.get_view();
-			P = f_cam.get_projection();
-		}
-		if (c2)
-		{
-			V = c_cam.get_view();
-			P = c_cam.get_projection();
-		}
-		if (c3)
-		{
-			V = t_cam.get_view();
-			P = t_cam.get_projection();
-		}
-
-
-		glDisable(GL_DEPTH_TEST);
-		glDepthMask(GL_FALSE);
-		glDisable(GL_CULL_FACE);
-
-		renderer::bind(sky_eff);
-		//remember auto appears unsafe for this use
-		mat4 MVP = P * V * M;
-		//set cubemap uniform
-		glUniformMatrix4fv(sky_eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
-		renderer::bind(sky_cube, 0);
-		glUniform1i(sky_eff.get_uniform_location("cubemap"), 0);
-		//renderer::render(skybox);
-		cout << "skybox" << endl;
-
-		glEnable(GL_DEPTH_TEST);
-		glDepthMask(GL_TRUE);
-		glEnable(GL_CULL_FACE);
-	}
+	
 
 	return true;
 }
