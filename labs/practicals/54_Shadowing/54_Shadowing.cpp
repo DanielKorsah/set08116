@@ -31,11 +31,7 @@ bool load_content() {
 	tex = texture("textures/checked.gif");
 
 	// ***********************
-	// Set materials
-	// - all emissive is black
-	// - all specular is white
-	// - all shininess is 25
-	// ***********************
+	// Set materials*************
 	// White plane
 	meshes["plane"].get_material().set_emissive(vec4(0.0f, 0.0f, 0.0f, 1.0f));
 	meshes["plane"].get_material().set_diffuse(vec4(1.0f, 1.0f, 1.0f, 1.0f));
@@ -151,6 +147,7 @@ bool render() {
 	// Set face cull mode to back
 	glCullFace(GL_BACK);
 	// *********************************
+
 
 	// Bind shader
 	renderer::bind(main_eff);

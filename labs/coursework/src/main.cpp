@@ -104,7 +104,8 @@ bool load_content() {
 	//Set transforms for models
 	{
 		meshes["plane"].get_transform().scale = (vec3(225.0f, 0.00f, 225.0f));
-		meshes["dino"].get_transform().scale = (vec3(0.05f, 0.05f, 0.05f));
+		meshes["dino"].get_transform().scale = (vec3(1, 1, 1));
+		meshes["dino"].get_transform().position = vec3(1, 1, 1);
 	}
 
 	//transform hierarchy: child, parent													//Hierarchy binding
@@ -170,7 +171,7 @@ bool load_content() {
 		f_cam.set_projection(half_pi<float>(), renderer::get_screen_aspect(), 0.1f, 4000.0f);
 
 		//set chase cam roperties
-		c_cam.set_pos_offset(vec3(-4.0f, 3.0f, -10.0f));
+		c_cam.set_pos_offset(vec3(0.0f, 3.0f, -10.0f));
 		c_cam.set_springiness(0.5f);
 
 		//set target camera properties
@@ -193,36 +194,6 @@ bool load_content() {
 	}
 
 	return true;
-}
-
-void CamRot()
-{
-	double current_x = 0;
-	double current_y = 0;
-
-	// The ratio of pixels to rotation - remember the fov
-	static double ratio_width = quarter_pi<float>() / static_cast<float>(renderer::get_screen_width());
-	static double ratio_height =
-		(quarter_pi<float>() *
-		(static_cast<float>(renderer::get_screen_height()) / static_cast<float>(renderer::get_screen_width()))) /
-		static_cast<float>(renderer::get_screen_height());
-
-	// Get the current cursor position
-	glfwGetCursorPos(renderer::get_window(), &current_x, &current_y);
-	// Calculate delta of cursor positions from last frame
-	double delta_x = current_x - cursor_x;
-	double delta_y = current_y - cursor_y;
-	// Multiply deltas by ratios - gets actual change in orientation
-	delta_x *= ratio_width;
-	delta_y *= ratio_height;
-	// Rotate cameras by delta
-	// delta_y - x-axis rotation
-	// delta_x - y-axis rotation
-
-	float rotSpeed = 2.0f;
-	f_cam.rotate(delta_x * rotSpeed, -delta_y * rotSpeed);
-	cursor_x = current_x;
-	cursor_y = current_y;
 }
 
 bool update(float delta_time)
@@ -258,34 +229,55 @@ bool update(float delta_time)
 	if (c1)
 	{
 
-		vec3 w;
-		vec3 s;
-		vec3 a;
-		vec3 d;
-		vec3 up;
-		vec3 dwn;
-		float speed = 10;
-		vec3 movement = vec3(0);
+		// The ratio of pixels to rotation - remember the fov
+		static double ratio_width = quarter_pi<float>() / static_cast<float>(renderer::get_screen_width());
+		static double ratio_height =
+			(quarter_pi<float>() *
+			(static_cast<float>(renderer::get_screen_height()) / static_cast<float>(renderer::get_screen_width()))) /
+			static_cast<float>(renderer::get_screen_height());
 
-		//get each translation component
+		double current_x;
+		double current_y;
+		// *********************************
+		// Get the current cursor position
+		glfwGetCursorPos(renderer::get_window(), &current_x, &current_y);
+		// Calculate delta of cursor positions from last frame
+		double delta_x = current_x - cursor_x;
+		double delta_y = current_y - cursor_y;
+		// Multiply deltas by ratios - gets actual change in orientation
+		delta_x *= ratio_width;
+		delta_y *= ratio_height;
+		// Rotate cameras by delta
+		// delta_y - x-axis rotation
+		// delta_x - y-axis rotation
+		f_cam.rotate(delta_x, -delta_y);
+		// Use keyboard to move the camera - WSAD
+		vec3 forward = vec3(0), back = vec3(0), left = vec3(0), right = vec3(0), up = vec3(0), down = vec3(0);
+		vec3 total = vec3(0);
+
 		if (glfwGetKey(renderer::get_window(), GLFW_KEY_W))
-			w = vec3(0.0f, 0.0f, 1.0f);
+			forward = vec3(0.0f, 0.0f, 1.0f);
 		if (glfwGetKey(renderer::get_window(), GLFW_KEY_S))
-			s = vec3(0.0f, 0.0f, -1.0f);
+			back = vec3(0.0f, 0.0f, -1.0f);
 		if (glfwGetKey(renderer::get_window(), GLFW_KEY_A))
-			a = vec3(-1.0f, 0.0f, 0.0f);
+			left = vec3(-1.0f, 0.0f, 0.0f);
 		if (glfwGetKey(renderer::get_window(), GLFW_KEY_D))
-			d = vec3(1.0f, 0.0f, 0.0f);
+			right = vec3(1.0f, 0.0f, 0.0f);
+		if (glfwGetKey(renderer::get_window(), GLFW_KEY_SPACE))
+			up = vec3(0, 1.0f, 0);
+		if (glfwGetKey(renderer::get_window(), GLFW_KEY_LEFT_CONTROL))
+			left = vec3(0, -1, 0);
 
-
-		//combine and normalise
-		if ((w + s + a + d) != vec3(0))
-			movement = normalize((w + s + a + d) * delta_time) * speed;
-		f_cam.move(movement);
-
-		CamRot();
+		// Move camera
+		total = forward + back + left + right + up + down;
+		if (total != vec3(0))
+			f_cam.move(normalize(total)* delta_time * 10.0f);
 		// Update the camera
 		f_cam.update(delta_time);
+		// Update cursor pos
+		cursor_x = current_x;
+		cursor_y = current_y;
+
 		skybox.get_transform().position = f_cam.get_position();
 	}
 
@@ -320,6 +312,7 @@ bool update(float delta_time)
 		skybox.get_transform().position = c_cam.get_position();
 	}
 
+	//target cam update
 	if (c3)
 	{
 		t_cam.set_target(meshes["dino"].get_transform().position);
@@ -463,19 +456,20 @@ bool render() {
 			P = t_cam.get_projection();
 		}
 
+
 		glDisable(GL_DEPTH_TEST);
 		glDepthMask(GL_FALSE);
 		glDisable(GL_CULL_FACE);
 
-		renderer::bind(sky_eff);
-		//remember auto appears unsafe for this use
-		mat4 MVP = P * V * M;
-		//set cubemap uniform
-		glUniformMatrix4fv(sky_eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
-		renderer::bind(sky_cube, 0);
-		glUniform1i(sky_eff.get_uniform_location("cubemap"), 0);
-		renderer::render(skybox);
-		cout << "skybox" << endl;
+		//renderer::bind(sky_eff);
+		////remember auto appears unsafe for this use
+		//mat4 MVP = P * V * M;
+		////set cubemap uniform
+		//glUniformMatrix4fv(sky_eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
+		//renderer::bind(sky_cube, 0);
+		//glUniform1i(sky_eff.get_uniform_location("cubemap"), 0);
+		//renderer::render(skybox);
+		//cout << "skybox" << endl;
 
 		glEnable(GL_DEPTH_TEST);
 		glDepthMask(GL_TRUE);
