@@ -49,6 +49,8 @@ map<mesh*, mesh*> hierarchy;
 //skybox cubemap
 cubemap sky_cube;
 
+mesh skybox;
+
 double cursor_x = 0.0;
 double cursor_y = 0.0;
 
@@ -67,9 +69,7 @@ bool initialise()
 }
 
 bool load_content() {
-
-	//frame buffer
-	frame = frame_buffer(renderer::get_screen_width(), renderer::get_screen_height());
+	
 
 	//load lights
 	{
@@ -166,17 +166,24 @@ bool load_content() {
 	//camera properties
 	{
 		// Set free camera properties
-		f_cam.set_position(vec3(0.0f, 10.0f, .0f));
+		f_cam.set_position(vec3(0.0f, 10.0f, 0.0f));
 		f_cam.set_projection(half_pi<float>(), renderer::get_screen_aspect(), 0.1f, 4000.0f);
 
 		//set chase cam roperties
-		c_cam.set_pos_offset(vec3(-4.0f, 3.0f, -30.0f));
+		c_cam.set_pos_offset(vec3(-4.0f, 3.0f, -10.0f));
 		c_cam.set_springiness(0.5f);
 
 		//set target camera properties
-		t_cam.set_position(vec3(-40.0f, 50.0f, 70.0f));
+		t_cam.set_position(vec3(-10.0f, 30.0f, 50.0f));
 		t_cam.set_projection(half_pi<float>(), renderer::get_screen_aspect(), 0.1f, 4000.0f);
 	}
+
+	//spawn skybox
+	{
+		skybox = mesh(geometry_builder::create_box());
+		skybox.get_transform().scale = vec3(100, 100, 100);
+	}
+	
 
 	//skybox cubemap textures
 	{
@@ -218,13 +225,10 @@ void CamRot()
 	cursor_y = current_y;
 }
 
-
-
-
 bool update(float delta_time)
 {
 	//spotlight position update
-	spot.set_position(meshes["spaceship"].get_transform().position);
+	//spot.set_position(meshes["spaceship"].get_transform().position);
 
 	//choose free
 	if (glfwGetKey(renderer::get_window(), GLFW_KEY_1))
@@ -282,6 +286,7 @@ bool update(float delta_time)
 		CamRot();
 		// Update the camera
 		f_cam.update(delta_time);
+		skybox.get_transform().position = f_cam.get_position();
 	}
 
 	//chase cam update
@@ -312,13 +317,17 @@ bool update(float delta_time)
 
 
 		c_cam.update(delta_time);
+		skybox.get_transform().position = c_cam.get_position();
 	}
 
 	if (c3)
 	{
 		t_cam.set_target(meshes["dino"].get_transform().position);
 		t_cam.update(delta_time);
+		skybox.get_transform().position = t_cam.get_position();
 	}
+
+	
 
 	//fps counter
 	cout << 1 / delta_time << endl;
@@ -334,7 +343,7 @@ bool render() {
 		// Create MVP matrix
 		mat4 M;
 		M = m.get_transform().get_transform_matrix();
-		
+
 		mat4 V;
 		mat4 P;
 		//get different projections from different cameras
@@ -404,6 +413,7 @@ bool render() {
 				glUniform3fv(normal_eff.get_uniform_location("eye_pos"), 1, value_ptr(c_cam.get_position()));
 			else if (c3)
 				glUniform3fv(normal_eff.get_uniform_location("eye_pos"), 1, value_ptr(t_cam.get_position()));
+			cout << e.first << endl;
 		}
 
 		if (e.first == "dino")
@@ -414,6 +424,7 @@ bool render() {
 			glUniform1i(eff.get_uniform_location("tex"), 0);
 			glUniform1i(eff.get_uniform_location("tex"), 1);
 			glUniform1i(eff.get_uniform_location("tex"), 2);
+			cout << e.first << endl;
 		}
 
 
@@ -429,8 +440,10 @@ bool render() {
 		renderer::render(m);
 	}
 
+	
 	//render skybox after others for minor optimisation
 	{
+		mat4 M = skybox.get_transform().get_transform_matrix();
 		mat4 P;
 		mat4 V;
 		//get different projections from different cameras
@@ -450,16 +463,22 @@ bool render() {
 			P = t_cam.get_projection();
 		}
 
+		glDisable(GL_DEPTH_TEST);
+		glDepthMask(GL_FALSE);
 		glDisable(GL_CULL_FACE);
 
 		renderer::bind(sky_eff);
 		//remember auto appears unsafe for this use
-		mat4 MVP = P * V * scale(mat4(), vec3(500.0f));
+		mat4 MVP = P * V * M;
+		//set cubemap uniform
 		glUniformMatrix4fv(sky_eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
 		renderer::bind(sky_cube, 0);
 		glUniform1i(sky_eff.get_uniform_location("cubemap"), 0);
-		renderer::render(geometry_builder::create_box());
+		renderer::render(skybox);
+		cout << "skybox" << endl;
 
+		glEnable(GL_DEPTH_TEST);
+		glDepthMask(GL_TRUE);
 		glEnable(GL_CULL_FACE);
 	}
 
