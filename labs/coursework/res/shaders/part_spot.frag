@@ -1,3 +1,4 @@
+#version 440
 // Spot light structure
 #ifndef SPOT_LIGHT
 #define SPOT_LIGHT

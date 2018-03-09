@@ -356,7 +356,7 @@ bool render() {
 			P = t_cam.get_projection();
 		}
 		auto MVP = P * V * M;
-
+	    
 		// Set MVP matrix uniform
 		glUniformMatrix4fv(eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
 		//set M matrix uniform
@@ -366,13 +366,36 @@ bool render() {
 
 		//bind material
 		renderer::bind(m.get_material(), "mat");
-
+		
 		// Bind light
 		renderer::bind(sun_dir, "sun");
 		renderer::bind(sun_point, "point");
 		renderer::bind(spot, "spot");
 
 		// Bind and set textures
+		
+		
+		if (e.first == "dino")
+		{
+			renderer::bind(tex["dino1"], 0);
+			renderer::bind(tex["dino2"], 1);
+			renderer::bind(tex["dino3"], 2);
+			glUniform1i(eff.get_uniform_location("tex"), 0);
+			glUniform1i(eff.get_uniform_location("tex"), 1);
+			glUniform1i(eff.get_uniform_location("tex"), 2);
+			cout << e.first << endl;
+		}
+
+		
+		// Set eye position- Get this from active camera
+		if (c1)
+			glUniform3fv(eff.get_uniform_location("eye_pos"), 1, value_ptr(f_cam.get_position()));
+		else if (c2)
+			glUniform3fv(eff.get_uniform_location("eye_pos"), 1, value_ptr(c_cam.get_position()));
+		else if (c3)
+			glUniform3fv(eff.get_uniform_location("eye_pos"), 1, value_ptr(t_cam.get_position()));
+
+
 		if (e.first == "plane")
 		{
 
@@ -408,26 +431,6 @@ bool render() {
 				glUniform3fv(normal_eff.get_uniform_location("eye_pos"), 1, value_ptr(t_cam.get_position()));
 			cout << e.first << endl;
 		}
-
-		if (e.first == "dino")
-		{
-			renderer::bind(tex["dino1"], 0);
-			renderer::bind(tex["dino2"], 1);
-			renderer::bind(tex["dino3"], 2);
-			glUniform1i(eff.get_uniform_location("tex"), 0);
-			glUniform1i(eff.get_uniform_location("tex"), 1);
-			glUniform1i(eff.get_uniform_location("tex"), 2);
-			cout << e.first << endl;
-		}
-
-
-		// Set eye position- Get this from active camera
-		if (c1)
-			glUniform3fv(eff.get_uniform_location("eye_pos"), 1, value_ptr(f_cam.get_position()));
-		else if (c2)
-			glUniform3fv(eff.get_uniform_location("eye_pos"), 1, value_ptr(c_cam.get_position()));
-		else if (c3)
-			glUniform3fv(eff.get_uniform_location("eye_pos"), 1, value_ptr(t_cam.get_position()));
 
 		// Render mesh
 		renderer::render(m);
