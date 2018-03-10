@@ -25,6 +25,19 @@ struct spot_light
 };
 #endif
 
+// Point light information
+#ifndef POINT_LIGHT
+#define POINT_LIGHT
+struct point_light
+{
+	vec4 light_colour;
+	vec3 position;
+	float constant;
+	float linear;
+	float quadratic;
+};
+#endif
+
 // A material structure
 #ifndef MATERIAL
 #define MATERIAL
@@ -39,13 +52,17 @@ struct material {
 // Forward declarations of used functions
 vec4 calculate_direction(in directional_light light, in material mat, in vec3 normal, in vec3 view_dir, in vec4 tex_colour);
 vec4 calculate_spot(in spot_light spot, in material mat, in vec3 position, in vec3 normal, in vec3 view_dir, in vec4 tex_colour);
+vec4 calculate_point(in point_light point, in material mat, in vec3 position, in vec3 normal, in vec3 view_dir, in vec4 tex_colour);
 vec3 calc_normal(in vec3 normal, in vec3 tangent, in vec3 binormal, in sampler2D normal_map, in vec2 tex_coord);
+//float calculate_shadow(in sampler2D shadow_map, in vec4 light_space_pos);
 
 // Direction light being used in the scene
 uniform directional_light light;
 
 //spot light being used
 uniform spot_light spot;
+
+uniform point_light point;
 
 // Material of the object being rendered
 uniform material mat;
@@ -67,6 +84,7 @@ layout(location = 3) in vec3 tangent;
 // Incoming binormal
 layout(location = 4) in vec3 binormal;
 
+
 // Outgoing colour
 layout(location = 0) out vec4 colour;
 
@@ -78,8 +96,12 @@ void main() {
   vec3 view_dir = normalize(eye_pos - position);
   // Calculate normal from normal map
   vec3 new_normal = calc_normal(normal, tangent, binormal, normal_map, tex_coord);
+  //shadows
   // Calculate directional light
   colour = calculate_direction(light, mat, new_normal, view_dir, tex_colour);
   colour += calculate_spot(spot, mat, position, normal, view_dir, tex_colour);
+  colour += calculate_point(point, mat, position, normal, view_dir, tex_colour);
+  
+  colour.a = 1;
   // *********************************
 }

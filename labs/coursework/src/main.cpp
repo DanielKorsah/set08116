@@ -11,6 +11,7 @@ geometry geom;
 effect eff;
 effect sky_eff;
 effect normal_eff;
+effect shadow_eff;
 
 
 free_camera f_cam;
@@ -61,6 +62,8 @@ float rot_speed;
 //speed of spaceship movement
 float ship_speed;
 
+shadow_map shadow;
+
 bool initialise()
 {
 	glfwSetInputMode(renderer::get_window(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -70,28 +73,29 @@ bool initialise()
 
 bool load_content() {
 	
-
+	shadow = shadow_map(renderer::get_screen_width(), renderer::get_screen_height());
 	//load lights
 	{
 		//set up the sun directional
-		//face from beihind the earth
-		sun_dir.set_direction(normalize(vec3(0, -0.5, 1)));
-		sun_dir.set_ambient_intensity(vec4(0.4, 0.4, 0.4, 1.0));
+		sun_dir.set_direction(normalize(vec3(-1, 0.1, 0)));
+		sun_dir.set_ambient_intensity(vec4(0.1, 0.1, 0.1, 1.0));
 		//set colour as white
-		sun_dir.set_light_colour(vec4(1, 1, 1, 1.0));
+		sun_dir.set_light_colour(vec4(0, 0, 0, 1));
 
 		//set up sun point
-		static float range = 400.0f;
-		static float constant = 0.0f;
-		sun_point.set_position(vec3(0.0f, 300.0f, -900.0f));
+		static float range = 1000.0f;
+		static float constant = 1.0f;
+		sun_point.set_position(vec3(0.0f, 20.0f, 0.0f));
+		sun_point.set_light_colour(vec4(0,0,1,1));
 		sun_point.set_range(range);
 		sun_point.set_constant_attenuation(constant);
 
 		//set up spot lights
+		spot.set_position(vec3(0, 15, 0));
 		spot.set_direction(vec3(0, -1, 0));
-		spot.set_light_colour(vec4(1, 0, 1, 1));
-		spot.set_range(60.0f);
-		spot.set_power(10.0f);
+		spot.set_light_colour(vec4(1, 0, 0, 1));
+		spot.set_range(150.0f);
+		spot.set_power(1.0f);
 		spot.set_constant_attenuation(constant);
 	}
 
@@ -103,7 +107,7 @@ bool load_content() {
 
 	//Set transforms for models
 	{
-		meshes["plane"].get_transform().scale = (vec3(225.0f, 0.00f, 225.0f));
+		meshes["plane"].get_transform().scale = (vec3(150.0f, 0.00f, 150.0f));
 		meshes["dino"].get_transform().scale = (vec3(1, 1, 1));
 		meshes["dino"].get_transform().position = vec3(1, 1, 1);
 	}
@@ -135,39 +139,47 @@ bool load_content() {
 		mat.set_shininess(25.0f);
 		mat.set_diffuse(vec4(1.0f, 1.0f, 1.0f, 1.0f));
 		meshes["dino"].set_material(mat);
+		mat.set_shininess(55.0f);
 		meshes["plane"].set_material(mat);
 
 	}
 
 
 	// Get and bind shaders
-	{
-		//lights and stuff
-		eff.add_shader("res/shaders/Shader.vert", GL_VERTEX_SHADER);
-		eff.add_shader("res/shaders/Shader.frag", GL_FRAGMENT_SHADER);
-
+	{ 
+		//lights and shadows
+		eff.add_shader("res/shaders/shadow.vert", GL_VERTEX_SHADER);
+		vector<string> light_frags = {"res/shaders/shadow.frag", "res/shaders/part_shadow.frag", "res/shaders/part_spot.frag", "res/shaders/part_direction.frag", "res/shaders/part_point.frag"};
+		eff.add_shader(light_frags, GL_FRAGMENT_SHADER);
+		
 		//skybox shaders
 		sky_eff.add_shader("res/shaders/Skybox.vert", GL_VERTEX_SHADER);
 		sky_eff.add_shader("res/shaders/Skybox.frag", GL_FRAGMENT_SHADER);
 
 		//normalmap shaders
-		normal_eff.add_shader("res/shaders/normal.frag", GL_FRAGMENT_SHADER);
 		normal_eff.add_shader("res/shaders/normal.vert", GL_VERTEX_SHADER);
+		normal_eff.add_shader("res/shaders/normal.frag", GL_FRAGMENT_SHADER);
 		normal_eff.add_shader("res/shaders/part_direction.frag", GL_FRAGMENT_SHADER);
 		normal_eff.add_shader("res/shaders/part_spot.frag", GL_FRAGMENT_SHADER);
+		normal_eff.add_shader("res/shaders/part_point.frag", GL_FRAGMENT_SHADER);
 		normal_eff.add_shader("res/shaders/part_normal.frag", GL_FRAGMENT_SHADER);
+
+		
+		shadow_eff.add_shader("res/shaders/Skybox.vert", GL_VERTEX_SHADER);
+
 
 		// Build effect
 		eff.build();
 		sky_eff.build();
 		normal_eff.build();
+		shadow_eff.build();
 	}
 
 
 	//camera properties
 	{
 		// Set free camera properties
-		f_cam.set_position(vec3(0.0f, 10.0f, 0.0f));
+		f_cam.set_position(vec3(spot.get_position()));
 		f_cam.set_projection(half_pi<float>(), renderer::get_screen_aspect(), 0.1f, 4000.0f);
 
 		//set chase cam roperties
@@ -182,7 +194,7 @@ bool load_content() {
 	//spawn skybox
 	{
 		skybox = mesh(geometry_builder::create_box());
-		skybox.get_transform().scale = vec3(1000, 1000, 1000);
+		skybox.get_transform().scale = vec3(3000, 3000, 3000);
 	}
 	
 
@@ -198,8 +210,6 @@ bool load_content() {
 
 bool update(float delta_time)
 {
-	//spotlight position update
-	//spot.set_position(meshes["spaceship"].get_transform().position);
 
 	//choose free
 	if (glfwGetKey(renderer::get_window(), GLFW_KEY_1))
@@ -321,6 +331,10 @@ bool update(float delta_time)
 	}
 
 	
+	// Update the shadow map light_position from the spot light
+	shadow.light_position = spot.get_position();
+	// do the same for light_dir property
+	shadow.light_dir = spot.get_direction();
 
 	//fps counter
 	cout << 1 / delta_time << endl;
@@ -328,6 +342,8 @@ bool update(float delta_time)
 }
 
 bool render() {
+
+
 
 	//render skybox 
 	{
@@ -371,6 +387,50 @@ bool render() {
 		glEnable(GL_CULL_FACE);
 	}
 
+	//render shadows
+	{
+	// *********************************
+	// Set render target to shadow map
+	renderer::set_render_target(shadow);
+	// Clear depth buffer bit
+	glClear(GL_DEPTH_BUFFER_BIT);
+	// Set face cull mode to front
+	glCullFace(GL_FRONT);
+	// *********************************
+
+	// We could just use the Camera's projection, 
+	// but that has a narrower FoV than the cone of the spot light, so we would get clipping.
+	// so we have yo create a new Proj Mat with a field of view of 90.
+	mat4 LightProjectionMat = perspective<float>(90.f, renderer::get_screen_aspect(), 0.1f, 1000.f);
+
+	// Bind shader
+	renderer::bind(shadow_eff);
+	// Render meshes
+	for (auto &e : meshes) {
+		auto m = e.second;
+		// Create MVP matrix
+		auto M = m.get_transform().get_transform_matrix();
+		// *********************************
+		// View matrix taken from shadow map
+		auto V = shadow.get_view();
+		// *********************************
+		auto MVP = LightProjectionMat * V * M;
+		// Set MVP matrix uniform
+		glUniformMatrix4fv(shadow_eff.get_uniform_location("MVP"), // Location of uniform
+			1,                                      // Number of values - 1 mat4
+			GL_FALSE,                               // Transpose the matrix?
+			value_ptr(MVP));                        // Pointer to matrix data
+													// Render mesh
+		renderer::render(m);
+	}
+	// *********************************
+	// Set render target back to the screen
+	renderer::set_render_target();
+	// Set face cull mode to back
+	glCullFace(GL_BACK);
+	// *********************************
+    }
+
 	// Render meshes
 	for (auto &e : meshes) {
 		mesh m = e.second;
@@ -411,7 +471,7 @@ bool render() {
 		renderer::bind(m.get_material(), "mat");
 		
 		// Bind light
-		renderer::bind(sun_dir, "sun");
+		renderer::bind(sun_dir, "light");
 		renderer::bind(sun_point, "point");
 		renderer::bind(spot, "spot");
 
@@ -458,6 +518,7 @@ bool render() {
 			//bind directional light
 			renderer::bind(sun_dir, "light");
 			renderer::bind(spot, "spot");
+			renderer::bind(sun_point, "point");
 			//bind actual texture
 			renderer::bind(tex["ground"], 0);
 			//bind normalmap
