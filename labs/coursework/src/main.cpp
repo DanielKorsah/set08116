@@ -55,12 +55,11 @@ mesh skybox;
 double cursor_x = 0.0;
 double cursor_y = 0.0;
 
-//circle origin for alien
-vec3 origin;
-//speed of alian movement
+//rotation steps
 float rot_speed;
-//speed of spaceship movement
-float ship_speed;
+
+//rate of light transform
+float light_speed;
 
 shadow_map shadow;
 
@@ -122,27 +121,31 @@ bool load_content() {
 	{
 		meshes["plane"] = mesh(geometry_builder::create_plane(1, 1));
 		meshes["dino"] = mesh(geometry("res/models/Trex3d.obj"));
+		meshes["raptor"] = mesh(geometry("res/models/Full.obj"));
 	}
 
 	//Set transforms for models
 	{
 		meshes["plane"].get_transform().scale = (vec3(150.0f, 0.00f, 150.0f));
 		meshes["dino"].get_transform().scale = (vec3(1, 1, 1));
-		meshes["dino"].get_transform().position = vec3(1, 1, 1);
+		meshes["dino"].get_transform().position = vec3(0, 0, 0);
+		meshes["raptor"].get_transform().scale = (vec3(0.1, 0.1, 0.1));
+		meshes["raptor"].get_transform().position = vec3(30, 0, 0);
 	}
 
 	//transform hierarchy: child, parent													//Hierarchy binding
 	{
-		//hierarchy[&meshes[]]
+		hierarchy[&meshes["raptor"]] = &meshes["dino"];
 	}
 
 	//Load Textures
 	{
 		tex["ground"] = texture("res/textures/grass01.jpg", true, true);
 		tex["dino1"] = texture("res/textures/TrexColour.jpg");
-		tex["dino2"] = texture("res/textures/TrexEye.jpg");
-		tex["dino3"] = texture("res/textures/TrexTooth.png");
-
+		/*tex["dino2"] = texture("res/textures/TrexEye.jpg");
+		tex["dino3"] = texture("res/textures/TrexTooth.png");*/
+		//tex["raptor"] = texture("res/textures/Deinonychus_DIFFUSE.jpg");
+		tex["raptor"] = texture("res/textures/Diffuse 4096x4096.jpg");
 		//plane normal texture
 		n_plane = texture("res/textures/grass01_n.jpg");
 	}
@@ -153,11 +156,11 @@ bool load_content() {
 		//reflecition material
 		material mat;
 
-		//dinosaur, planet, plane, alien, planet material
-		mat.set_specular(vec4(0.3f));
+		mat.set_specular(vec4(0.4f));
 		mat.set_shininess(25.0f);
 		mat.set_diffuse(vec4(1.0f, 1.0f, 1.0f, 1.0f));
 		meshes["dino"].set_material(mat);
+		meshes["raptor"].set_material(mat);
 		mat.set_shininess(55.0f);
 		mat.set_specular(vec4(0.9));
 		meshes["plane"].set_material(mat);
@@ -359,6 +362,21 @@ bool update(float delta_time)
 	// do the same for light_dir property
 	shadow.light_dir = spot.get_direction();
 
+
+	for (auto l : points)
+	{
+		light_speed += 0.5 * delta_time;
+		vec3 origin = l.get_position();
+		l.set_position(vec3(origin.x, origin.y, origin.z + sin(light_speed)));
+	}
+
+	//raptor orbit dino
+	vec3 origin = meshes["dino"].get_transform().position;
+	
+	rot_speed += 1.5f * delta_time;
+	meshes["raptor"].get_transform().position.x = origin.x + cos(rot_speed) * 30;
+	meshes["raptor"].get_transform().position.z = origin.z + sin(rot_speed) * 30;
+
 	//fps counter
 	cout << 1 / delta_time << endl;
 	return true;
@@ -461,7 +479,15 @@ bool render() {
 		renderer::bind(eff);
 		// Create MVP matrix
 		mat4 M;
-		M = m.get_transform().get_transform_matrix();
+		if (e.first == "raptor")					//set hierarchy transforms
+		{
+			mat4 parent_M = (*hierarchy[&meshes[e.first]]).get_transform().get_transform_matrix();
+			M = parent_M * m.get_transform().get_transform_matrix();
+		}
+		else
+		{
+			M = m.get_transform().get_transform_matrix();
+		}
 
 		mat4 V;
 		mat4 P;
@@ -504,12 +530,17 @@ bool render() {
 		if (e.first == "dino")
 		{
 			renderer::bind(tex["dino1"], 0);
-			renderer::bind(tex["dino2"], 1);
-			renderer::bind(tex["dino3"], 2);
+			//renderer::bind(tex["dino2"], 1);
+			//renderer::bind(tex["dino3"], 2);
 			glUniform1i(eff.get_uniform_location("tex"), 0);
 			//glUniform1i(eff.get_uniform_location("tex"), 1);
 			//glUniform1i(eff.get_uniform_location("tex"), 2);
-			cout << e.first << endl;
+		}
+
+		if (e.first == "raptor")
+		{
+			renderer::bind(tex["raptor"], 0);
+			glUniform1i(eff.get_uniform_location("tex"), 0);
 		}
 
 		
@@ -556,7 +587,6 @@ bool render() {
 				glUniform3fv(normal_eff.get_uniform_location("eye_pos"), 1, value_ptr(c_cam.get_position()));
 			else if (c3)
 				glUniform3fv(normal_eff.get_uniform_location("eye_pos"), 1, value_ptr(t_cam.get_position()));
-			cout << e.first << endl;
 		}
 
 		// Render mesh
