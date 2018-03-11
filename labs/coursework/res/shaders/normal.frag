@@ -62,7 +62,8 @@ uniform directional_light light;
 //spot light being used
 uniform spot_light spot;
 
-uniform point_light point;
+//uniform point_light points[];
+uniform point_light points[3];
 
 // Material of the object being rendered
 uniform material mat;
@@ -96,12 +97,15 @@ void main() {
   vec3 view_dir = normalize(eye_pos - position);
   // Calculate normal from normal map
   vec3 new_normal = calc_normal(normal, tangent, binormal, normal_map, tex_coord);
-  //shadows
   // Calculate directional light
   colour = calculate_direction(light, mat, new_normal, view_dir, tex_colour);
+  // Calculate spot lights
   colour += calculate_spot(spot, mat, position, normal, view_dir, tex_colour);
-  colour += calculate_point(point, mat, position, normal, view_dir, tex_colour);
-  
+  //calculate point lights
+  for (int i = 0; i < 3; i++) 
+	{
+    colour += calculate_point(points[i], mat, position, normal, view_dir, tex_colour);
+  }
   colour.a = 1;
   // *********************************
 }

@@ -25,8 +25,8 @@ bool c3 = false;
 
 //global directional light
 directional_light sun_dir;
-//point light to illuminate the sun
-point_light sun_point;
+//point lights
+vector<point_light> points;
 //spot light
 spot_light spot;
 
@@ -76,24 +76,44 @@ bool load_content() {
 	shadow = shadow_map(renderer::get_screen_width(), renderer::get_screen_height());
 	//load lights
 	{
-		//set up the sun directional
+		//set up the directional
 		sun_dir.set_direction(normalize(vec3(-1, 0.1, 0)));
 		sun_dir.set_ambient_intensity(vec4(0.1, 0.1, 0.1, 1.0));
 		//set colour as white
-		sun_dir.set_light_colour(vec4(0, 0, 0, 1));
+		sun_dir.set_light_colour(vec4(0.5f, 0.5f, 0.5f, 1));
 
-		//set up sun point
-		static float range = 1000.0f;
+		//set up points
+		static float range = 30.0f;
 		static float constant = 1.0f;
-		sun_point.set_position(vec3(0.0f, 20.0f, 0.0f));
-		sun_point.set_light_colour(vec4(0,0,1,1));
-		sun_point.set_range(range);
-		sun_point.set_constant_attenuation(constant);
+		for (int i = 0; i < 3; i++) 
+		{
+			point_light point;
+			
+			if (i == 0)
+			{
+				point.set_light_colour(vec4(1, 0, 0, 1));
+				point.set_position(vec3(-50.0f, 5.0f, 0.0f));
+			}
+			else if (i == 1)
+			{
+				point.set_light_colour(vec4(0, 1, 0, 1));
+				point.set_position(vec3(0.0f, 5.0f, 0.0f));
+			}
+			else
+			{
+				point.set_light_colour(vec4(0, 0, 1, 1));
+				point.set_position(vec3(50.0f, 5.0f, 0.0f));
+			}
+			point.set_range(range);
+			point.set_constant_attenuation(constant);
+			points.push_back(point);
+		}
 
 		//set up spot lights
+		spot_light spot;
 		spot.set_position(vec3(0, 15, 0));
 		spot.set_direction(vec3(0, -1, 0));
-		spot.set_light_colour(vec4(1, 0, 0, 1));
+		spot.set_light_colour(vec4(1, 1, 1, 1));
 		spot.set_range(150.0f);
 		spot.set_power(1.0f);
 		spot.set_constant_attenuation(constant);
@@ -140,6 +160,7 @@ bool load_content() {
 		mat.set_diffuse(vec4(1.0f, 1.0f, 1.0f, 1.0f));
 		meshes["dino"].set_material(mat);
 		mat.set_shininess(55.0f);
+		mat.set_specular(vec4(0.9));
 		meshes["plane"].set_material(mat);
 
 	}
@@ -149,8 +170,11 @@ bool load_content() {
 	{ 
 		//lights and shadows
 		eff.add_shader("res/shaders/shadow.vert", GL_VERTEX_SHADER);
-		vector<string> light_frags = {"res/shaders/shadow.frag", "res/shaders/part_shadow.frag", "res/shaders/part_spot.frag", "res/shaders/part_direction.frag", "res/shaders/part_point.frag"};
-		eff.add_shader(light_frags, GL_FRAGMENT_SHADER);
+		eff.add_shader("res/shaders/shadow.frag", GL_FRAGMENT_SHADER);
+		eff.add_shader("res/shaders/part_shadow.frag", GL_FRAGMENT_SHADER);
+		eff.add_shader("res/shaders/part_spot.frag", GL_FRAGMENT_SHADER);
+		eff.add_shader("res/shaders/part_direction.frag", GL_FRAGMENT_SHADER);
+		eff.add_shader("res/shaders/part_point.frag", GL_FRAGMENT_SHADER);
 		
 		//skybox shaders
 		sky_eff.add_shader("res/shaders/Skybox.vert", GL_VERTEX_SHADER);
@@ -179,7 +203,7 @@ bool load_content() {
 	//camera properties
 	{
 		// Set free camera properties
-		f_cam.set_position(vec3(spot.get_position()));
+		f_cam.set_position(vec3(0, 20, -20));
 		f_cam.set_projection(half_pi<float>(), renderer::get_screen_aspect(), 0.1f, 4000.0f);
 
 		//set chase cam roperties
@@ -472,7 +496,7 @@ bool render() {
 		
 		// Bind light
 		renderer::bind(sun_dir, "light");
-		renderer::bind(sun_point, "point");
+		renderer::bind(points, "points");
 		renderer::bind(spot, "spot");
 
 		// Bind and set textures
@@ -518,7 +542,7 @@ bool render() {
 			//bind directional light
 			renderer::bind(sun_dir, "light");
 			renderer::bind(spot, "spot");
-			renderer::bind(sun_point, "point");
+			renderer::bind(points, "points");
 			//bind actual texture
 			renderer::bind(tex["ground"], 0);
 			//bind normalmap
