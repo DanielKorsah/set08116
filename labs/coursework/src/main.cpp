@@ -83,7 +83,7 @@ bool load_content() {
 		sun_dir.set_light_colour(vec4(0.5f, 0.5f, 0.5f, 1));
 
 		//set up points
-		static float range = 30.0f;
+		static float range = 35.0f;
 		static float constant = 1.0f;
 		for (int i = 0; i < 3; i++) 
 		{
@@ -92,31 +92,30 @@ bool load_content() {
 			if (i == 0)
 			{
 				point.set_light_colour(vec4(1, 0, 0, 1));
-				point.set_position(vec3(-50.0f, 5.0f, 0.0f));
+				point.set_position(vec3(-50.0f, 15.0f, 0.0f));
 			}
 			else if (i == 1)
 			{
 				point.set_light_colour(vec4(0, 1, 0, 1));
-				point.set_position(vec3(0.0f, 5.0f, 0.0f));
+				point.set_position(vec3(0.0f, 15.0f, 0.0f));
 			}
 			else
 			{
 				point.set_light_colour(vec4(0, 0, 1, 1));
-				point.set_position(vec3(50.0f, 5.0f, 0.0f));
+				point.set_position(vec3(50.0f, 15.0f, 0.0f));
 			}
 			point.set_range(range);
 			point.set_constant_attenuation(constant);
 			points.push_back(point);
 		}
 
-		//set up spot lights
+		//set up spot light
 		spot_light spot;
-		spot.set_position(vec3(0, 15, 0));
-		spot.set_direction(vec3(0, -1, 0));
-		spot.set_light_colour(vec4(1, 1, 1, 1));
-		spot.set_range(150.0f);
-		spot.set_power(1.0f);
-		spot.set_constant_attenuation(constant);
+		spot.set_position(vec3(50, 50, 50));
+		spot.set_direction(normalize(vec4(-1.0f)));
+		spot.set_light_colour(vec4(1, 0, 1, 1));
+		spot.set_range(160.0f);
+		spot.set_power(5.0f);
 	}
 
 	//load object meshes
@@ -134,7 +133,7 @@ bool load_content() {
 
 	//transform hierarchy: child, parent													//Hierarchy binding
 	{
-		
+		//hierarchy[&meshes[]]
 	}
 
 	//Load Textures

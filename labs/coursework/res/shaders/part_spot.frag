@@ -32,15 +32,15 @@ vec4 calculate_spot(in spot_light spot, in material mat, in vec3 position, in ve
 {
 	vec3 light_dir = normalize(spot.position - position);
 	float d = distance(spot.position, position);
-	float att = spot.constant + spot.linear * d + spot.quadratic * d * d;
-	float I = pow(max(dot(light_dir, -1.0 * spot.direction), 0.0), spot.power);
-	vec4 light_colour = I / att * spot.light_colour;
+	float att = 1.0 / (spot.quadratic * pow(d, 2.0) + spot.linear * d + spot.constant);
+	float I = max(dot(-spot.direction, light_dir), 0.0);
+	vec4 light_colour = spot.light_colour * I * att;
 	
-	vec4 diffuse = (mat.diffuse_reflection * light_colour) * max(dot(normal, light_dir), 0.0);
+	vec4 diffuse = (mat.diffuse_reflection * light_colour) * max(dot(light_dir, normal), 0.0);
 	vec3 half_vector = normalize(light_dir + view_dir);
 	vec4 specular = (mat.specular_reflection * light_colour) * pow(max(dot(normal, half_vector), 0.0), mat.shininess);
 	
-	vec4 colour = ((mat.emissive + diffuse) * tex_colour) + specular;
+	vec4 colour = (mat.emissive + diffuse) * tex_colour + specular;
 	colour.a = 1.0;
 
 	return colour;
