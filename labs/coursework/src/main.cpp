@@ -30,8 +30,6 @@ vector<point_light> points;
 //spot light
 spot_light spot;
 
-
-
 //map of meshes
 map<string, mesh> meshes;
 
@@ -119,35 +117,18 @@ bool load_content() {
 
 	//load object meshes
 	{
-		meshes["plane"] = mesh(geometry_builder::create_plane(1, 1));
-		meshes["dino"] = mesh(geometry("res/models/Trex3d.obj"));
-		meshes["raptor"] = mesh(geometry("res/models/Full.obj"));
+		
 	}
 
 	//Set transforms for models
 	{
-		meshes["plane"].get_transform().scale = (vec3(150.0f, 0.00f, 150.0f));
-		meshes["dino"].get_transform().scale = (vec3(1, 1, 1));
-		meshes["dino"].get_transform().position = vec3(0, 0, 0);
-		meshes["raptor"].get_transform().scale = (vec3(0.1, 0.1, 0.1));
-		meshes["raptor"].get_transform().position = vec3(30, 0, 0);
+		
 	}
 
-	//transform hierarchy: child, parent													//Hierarchy binding
-	{
-		hierarchy[&meshes["raptor"]] = &meshes["dino"];
-	}
 
 	//Load Textures
 	{
-		tex["ground"] = texture("res/textures/grass01.jpg", true, true);
-		tex["dino1"] = texture("res/textures/TrexColour.jpg");
-		/*tex["dino2"] = texture("res/textures/TrexEye.jpg");
-		tex["dino3"] = texture("res/textures/TrexTooth.png");*/
-		//tex["raptor"] = texture("res/textures/Deinonychus_DIFFUSE.jpg");
-		tex["raptor"] = texture("res/textures/Diffuse 4096x4096.jpg");
-		//plane normal texture
-		n_plane = texture("res/textures/grass01_n.jpg");
+		
 	}
 
 
@@ -170,35 +151,7 @@ bool load_content() {
 
 	// Get and bind shaders
 	{ 
-		//lights and shadows
-		eff.add_shader("res/shaders/shadow.vert", GL_VERTEX_SHADER);
-		eff.add_shader("res/shaders/shadow.frag", GL_FRAGMENT_SHADER);
-		eff.add_shader("res/shaders/part_shadow.frag", GL_FRAGMENT_SHADER);
-		eff.add_shader("res/shaders/part_spot.frag", GL_FRAGMENT_SHADER);
-		eff.add_shader("res/shaders/part_direction.frag", GL_FRAGMENT_SHADER);
-		eff.add_shader("res/shaders/part_point.frag", GL_FRAGMENT_SHADER);
 		
-		//skybox shaders
-		sky_eff.add_shader("res/shaders/Skybox.vert", GL_VERTEX_SHADER);
-		sky_eff.add_shader("res/shaders/Skybox.frag", GL_FRAGMENT_SHADER);
-
-		//normalmap shaders
-		normal_eff.add_shader("res/shaders/normal.vert", GL_VERTEX_SHADER);
-		normal_eff.add_shader("res/shaders/normal.frag", GL_FRAGMENT_SHADER);
-		normal_eff.add_shader("res/shaders/part_direction.frag", GL_FRAGMENT_SHADER);
-		normal_eff.add_shader("res/shaders/part_spot.frag", GL_FRAGMENT_SHADER);
-		normal_eff.add_shader("res/shaders/part_point.frag", GL_FRAGMENT_SHADER);
-		normal_eff.add_shader("res/shaders/part_normal.frag", GL_FRAGMENT_SHADER);
-
-		
-		shadow_eff.add_shader("res/shaders/Skybox.vert", GL_VERTEX_SHADER);
-
-
-		// Build effect
-		eff.build();
-		sky_eff.build();
-		normal_eff.build();
-		shadow_eff.build();
 	}
 
 
@@ -356,35 +309,10 @@ bool update(float delta_time)
 		skybox.get_transform().position = t_cam.get_position();
 	}
 
-	
-	// Update the shadow map light_position from the spot light
-	shadow.light_position = spot.get_position();
-	// do the same for light_dir property
-	shadow.light_dir = spot.get_direction();
-
-
-	for (auto l : points)
-	{
-		light_speed += 0.5 * delta_time;
-		vec3 origin = l.get_position();
-		l.set_position(vec3(origin.x, origin.y, origin.z + sin(light_speed)));
-	}
-
-	//raptor orbit dino
-	vec3 origin = meshes["dino"].get_transform().position;
-	
-	rot_speed += 1.5f * delta_time;
-	meshes["raptor"].get_transform().position.x = origin.x + cos(rot_speed) * 30;
-	meshes["raptor"].get_transform().position.z = origin.z + sin(rot_speed) * 30;
-
-	//fps counter
-	cout << 1 / delta_time << endl;
 	return true;
 }
 
 bool render() {
-
-
 
 	//render skybox 
 	{
@@ -427,50 +355,6 @@ bool render() {
 		glDepthMask(GL_TRUE);
 		glEnable(GL_CULL_FACE);
 	}
-
-	//render shadows
-	{
-	// *********************************
-	// Set render target to shadow map
-	renderer::set_render_target(shadow);
-	// Clear depth buffer bit
-	glClear(GL_DEPTH_BUFFER_BIT);
-	// Set face cull mode to front
-	glCullFace(GL_FRONT);
-	// *********************************
-
-	// We could just use the Camera's projection, 
-	// but that has a narrower FoV than the cone of the spot light, so we would get clipping.
-	// so we have yo create a new Proj Mat with a field of view of 90.
-	mat4 LightProjectionMat = perspective<float>(90.f, renderer::get_screen_aspect(), 0.1f, 1000.f);
-
-	// Bind shader
-	renderer::bind(shadow_eff);
-	// Render meshes
-	for (auto &e : meshes) {
-		auto m = e.second;
-		// Create MVP matrix
-		auto M = m.get_transform().get_transform_matrix();
-		// *********************************
-		// View matrix taken from shadow map
-		auto V = shadow.get_view();
-		// *********************************
-		auto MVP = LightProjectionMat * V * M;
-		// Set MVP matrix uniform
-		glUniformMatrix4fv(shadow_eff.get_uniform_location("MVP"), // Location of uniform
-			1,                                      // Number of values - 1 mat4
-			GL_FALSE,                               // Transpose the matrix?
-			value_ptr(MVP));                        // Pointer to matrix data
-													// Render mesh
-		renderer::render(m);
-	}
-	// *********************************
-	// Set render target back to the screen
-	renderer::set_render_target();
-	// Set face cull mode to back
-	glCullFace(GL_BACK);
-	// *********************************
-    }
 
 	// Render meshes
 	for (auto &e : meshes) {
@@ -524,25 +408,6 @@ bool render() {
 		renderer::bind(points, "points");
 		renderer::bind(spot, "spot");
 
-		// Bind and set textures
-		
-		
-		if (e.first == "dino")
-		{
-			renderer::bind(tex["dino1"], 0);
-			//renderer::bind(tex["dino2"], 1);
-			//renderer::bind(tex["dino3"], 2);
-			glUniform1i(eff.get_uniform_location("tex"), 0);
-			//glUniform1i(eff.get_uniform_location("tex"), 1);
-			//glUniform1i(eff.get_uniform_location("tex"), 2);
-		}
-
-		if (e.first == "raptor")
-		{
-			renderer::bind(tex["raptor"], 0);
-			glUniform1i(eff.get_uniform_location("tex"), 0);
-		}
-
 		
 		// Set eye position- Get this from active camera
 		if (c1)
@@ -552,49 +417,10 @@ bool render() {
 		else if (c3)
 			glUniform3fv(eff.get_uniform_location("eye_pos"), 1, value_ptr(t_cam.get_position()));
 
-
-		if (e.first == "plane")
-		{
-
-			// Bind effect
-			renderer::bind(normal_eff);
-			// Create MVP matrix
-			auto M = m.get_transform().get_transform_matrix();
-			auto MVP = P * V * M;
-			// Set MVP matrix uniform
-			glUniformMatrix4fv(normal_eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
-			//Set M Matrix uniform
-			glUniformMatrix4fv(normal_eff.get_uniform_location("M"), 1, GL_FALSE, value_ptr(M));
-			//Set N Matrix uniform
-			glUniformMatrix3fv(normal_eff.get_uniform_location("N"), 1, GL_FALSE, value_ptr(m.get_transform().get_normal_matrix()));
-			//bind material
-			renderer::bind(m.get_material(), "mat");
-			//bind directional light
-			renderer::bind(sun_dir, "light");
-			renderer::bind(spot, "spot");
-			renderer::bind(points, "points");
-			//bind actual texture
-			renderer::bind(tex["ground"], 0);
-			//bind normalmap
-			renderer::bind(n_plane, 1);
-			// Set normal_map uniform
-			glUniform1i(normal_eff.get_uniform_location("normal_map"), 1);
-			//set tex uniform
-			glUniform1i(normal_eff.get_uniform_location("tex"), 0);
-			if (c1)
-				glUniform3fv(normal_eff.get_uniform_location("eye_pos"), 1, value_ptr(f_cam.get_position()));
-			else if (c2)
-				glUniform3fv(normal_eff.get_uniform_location("eye_pos"), 1, value_ptr(c_cam.get_position()));
-			else if (c3)
-				glUniform3fv(normal_eff.get_uniform_location("eye_pos"), 1, value_ptr(t_cam.get_position()));
-		}
-
 		// Render mesh
 		renderer::render(m);
 	}
 	
-	
-
 	return true;
 }
 
