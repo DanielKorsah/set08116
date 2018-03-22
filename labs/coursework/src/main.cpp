@@ -39,9 +39,6 @@ map<string, texture> tex;
 frame_buffer frame;
 geometry screen;
 
-//declare normal textures
-texture n_plane;
-
 //transform hierarchy map
 map<mesh*, mesh*> hierarchy;
 
@@ -78,41 +75,7 @@ bool load_content() {
 		sun_dir.set_ambient_intensity(vec4(0.1, 0.1, 0.1, 1.0));
 		//set colour as white
 		sun_dir.set_light_colour(vec4(0.5f, 0.5f, 0.5f, 1));
-
-		//set up points
-		static float range = 35.0f;
-		static float constant = 1.0f;
-		for (int i = 0; i < 3; i++) 
-		{
-			point_light point;
-			
-			if (i == 0)
-			{
-				point.set_light_colour(vec4(1, 0, 0, 1));
-				point.set_position(vec3(-50.0f, 15.0f, 0.0f));
-			}
-			else if (i == 1)
-			{
-				point.set_light_colour(vec4(0, 1, 0, 1));
-				point.set_position(vec3(0.0f, 15.0f, 0.0f));
-			}
-			else
-			{
-				point.set_light_colour(vec4(0, 0, 1, 1));
-				point.set_position(vec3(50.0f, 15.0f, 0.0f));
-			}
-			point.set_range(range);
-			point.set_constant_attenuation(constant);
-			points.push_back(point);
-		}
-
-		//set up spot light
-		spot_light spot;
-		spot.set_position(vec3(50, 50, 50));
-		spot.set_direction(normalize(vec4(-1.0f)));
-		spot.set_light_colour(vec4(1, 0, 1, 1));
-		spot.set_range(160.0f);
-		spot.set_power(5.0f);
+		
 	}
 
 	//load object meshes
@@ -151,6 +114,11 @@ bool load_content() {
 
 	// Get and bind shaders
 	{ 
+		//skybox shaders
+		sky_eff.add_shader("res/shaders/Skybox.vert", GL_VERTEX_SHADER);
+		sky_eff.add_shader("res/shaders/Skybox.frag", GL_FRAGMENT_SHADER);
+
+		sky_eff.build();
 		
 	}
 
@@ -356,70 +324,6 @@ bool render() {
 		glEnable(GL_CULL_FACE);
 	}
 
-	// Render meshes
-	for (auto &e : meshes) {
-		mesh m = e.second;
-		// Bind effect
-		renderer::bind(eff);
-		// Create MVP matrix
-		mat4 M;
-		if (e.first == "raptor")					//set hierarchy transforms
-		{
-			mat4 parent_M = (*hierarchy[&meshes[e.first]]).get_transform().get_transform_matrix();
-			M = parent_M * m.get_transform().get_transform_matrix();
-		}
-		else
-		{
-			M = m.get_transform().get_transform_matrix();
-		}
-
-		mat4 V;
-		mat4 P;
-		//get different projections from different cameras
-		if (c1)
-		{
-			V = f_cam.get_view();
-			P = f_cam.get_projection();
-		}
-		if (c2)
-		{
-			V = c_cam.get_view();
-			P = c_cam.get_projection();
-		}
-		if (c3)
-		{
-			V = t_cam.get_view();
-			P = t_cam.get_projection();
-		}
-		auto MVP = P * V * M;
-	    
-		// Set MVP matrix uniform
-		glUniformMatrix4fv(eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
-		//set M matrix uniform
-		glUniformMatrix4fv(eff.get_uniform_location("M"), 1, GL_FALSE, value_ptr(M));
-		//set normal matrix uniform
-		glUniformMatrix3fv(eff.get_uniform_location("N"), 1, GL_FALSE, value_ptr(m.get_transform().get_normal_matrix()));
-
-		//bind material
-		renderer::bind(m.get_material(), "mat");
-		
-		// Bind light
-		renderer::bind(sun_dir, "light");
-		renderer::bind(points, "points");
-		renderer::bind(spot, "spot");
-
-		
-		// Set eye position- Get this from active camera
-		if (c1)
-			glUniform3fv(eff.get_uniform_location("eye_pos"), 1, value_ptr(f_cam.get_position()));
-		else if (c2)
-			glUniform3fv(eff.get_uniform_location("eye_pos"), 1, value_ptr(c_cam.get_position()));
-		else if (c3)
-			glUniform3fv(eff.get_uniform_location("eye_pos"), 1, value_ptr(t_cam.get_position()));
-
-		// Render mesh
-		renderer::render(m);
-	}
 	
 	return true;
 }
