@@ -1,12 +1,15 @@
 #include <glm\glm.hpp>
 #include <graphics_framework.h>
 
+#include "meshGen.h"
+
 using namespace std;
 using namespace graphics_framework;
 using namespace glm;
 
 
-geometry geom;
+geometry terrain;
+geometry water;
 
 effect eff;
 effect sky_eff;
@@ -115,16 +118,10 @@ bool load_content() {
 		spot.set_power(5.0f);
 	}
 
-	//load object meshes
+	//load geometry meshes
 	{
-		
+		vector<vec3> positions = makeMesh();
 	}
-
-	//Set transforms for models
-	{
-		
-	}
-
 
 	//Load Textures
 	{
