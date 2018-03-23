@@ -8,10 +8,6 @@ using namespace graphics_framework;
 using namespace glm;
 
 
-geometry terrain;
-geometry water;
-mesh terrain_mesh;
-mesh water_mesh;
 
 effect eff;
 effect sky_eff;
@@ -84,16 +80,13 @@ bool load_content() {
 
 	//load geometry meshes
 	{
+		geometry terrain;
+		geometry water;
+
 		vector<vec3> positions = makeMesh();
 		water.add_buffer(positions, BUFFER_INDEXES::POSITION_BUFFER);
-		water_mesh.set_geometry(water);
+		meshes["water"].set_geometry(water);
 	}
-
-	//Load Textures
-	{
-		
-	}
-
 
 	//set materials
 	{
@@ -104,7 +97,7 @@ bool load_content() {
 		mat.set_shininess(25.0f);
 		mat.set_diffuse(vec4(0.2f, 0.2f, 1.0f, 1.0f));
 
-		water_mesh.set_material(mat);
+		meshes["water"].set_material(mat);
 	}
 
 
