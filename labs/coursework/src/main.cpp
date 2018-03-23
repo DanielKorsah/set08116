@@ -10,11 +10,12 @@ using namespace glm;
 
 geometry terrain;
 geometry water;
+mesh terrain_mesh;
+mesh water_mesh;
 
 effect eff;
 effect sky_eff;
-effect normal_eff;
-effect shadow_eff;
+effect water_eff;
 
 
 free_camera f_cam;
@@ -84,6 +85,8 @@ bool load_content() {
 	//load geometry meshes
 	{
 		vector<vec3> positions = makeMesh();
+		water.add_buffer(positions, BUFFER_INDEXES::POSITION_BUFFER);
+		water_mesh.set_geometry(water);
 	}
 
 	//Load Textures
@@ -99,13 +102,9 @@ bool load_content() {
 
 		mat.set_specular(vec4(0.4f));
 		mat.set_shininess(25.0f);
-		mat.set_diffuse(vec4(1.0f, 1.0f, 1.0f, 1.0f));
-		meshes["dino"].set_material(mat);
-		meshes["raptor"].set_material(mat);
-		mat.set_shininess(55.0f);
-		mat.set_specular(vec4(0.9));
-		meshes["plane"].set_material(mat);
+		mat.set_diffuse(vec4(0.2f, 0.2f, 1.0f, 1.0f));
 
+		water_mesh.set_material(mat);
 	}
 
 
@@ -115,7 +114,12 @@ bool load_content() {
 		sky_eff.add_shader("res/shaders/Skybox.vert", GL_VERTEX_SHADER);
 		sky_eff.add_shader("res/shaders/Skybox.frag", GL_FRAGMENT_SHADER);
 
+		water_eff.add_shader("res/shaders/gouraud.vert", GL_VERTEX_SHADER);
+
+
+
 		sky_eff.build();
+		water_eff.build();
 		
 	}
 
@@ -319,6 +323,34 @@ bool render() {
 		glEnable(GL_DEPTH_TEST);
 		glDepthMask(GL_TRUE);
 		glEnable(GL_CULL_FACE);
+	}
+
+	for (auto &e : meshes) {
+		auto m = e.second;
+		// Bind effect
+		renderer::bind(eff);
+		// Create MVP matrix
+		auto M = m.get_transform().get_transform_matrix();
+		auto V = f_cam.get_view();
+		auto P = f_cam.get_projection();
+		auto MVP = P * V * M;
+		// Set MVP matrix uniform
+		glUniformMatrix4fv(eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
+
+		// *********************************
+		// Set M matrix uniform
+		glUniformMatrix4fv(eff.get_uniform_location("M"), 1, GL_FALSE, value_ptr(M));
+		// Set N matrix uniform - remember - 3x3 matrix
+		glUniformMatrix3fv(eff.get_uniform_location("N"), 1, GL_FALSE, value_ptr(m.get_transform().get_normal_matrix()));
+		// Bind material
+		renderer::bind(m.get_material(), "mat");
+		// Bind light
+		renderer::bind(sun_dir, "light");
+		// Set eye position - Get this from active camera
+		glUniform3fv(eff.get_uniform_location("eye_pos"), 1, value_ptr(f_cam.get_position()));
+		// Render mesh
+		renderer::render(m);
+		// *********************************
 	}
 
 	
