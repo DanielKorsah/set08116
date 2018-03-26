@@ -66,7 +66,7 @@ bool initialise()
 }
 
 bool load_content() {
-	
+
 	shadow = shadow_map(renderer::get_screen_width(), renderer::get_screen_height());
 	//load lights
 	{
@@ -75,7 +75,7 @@ bool load_content() {
 		sun_dir.set_ambient_intensity(vec4(0.1, 0.1, 0.1, 1.0));
 		//set colour as white
 		sun_dir.set_light_colour(vec4(0.5f, 0.5f, 0.5f, 1));
-		
+
 	}
 
 	//load geometry meshes
@@ -83,9 +83,10 @@ bool load_content() {
 		geometry terrain;
 		geometry water;
 
-		vector<vec3> positions = makeMesh();
+		vector<vec3> positions = makeMesh(100);
 		water.add_buffer(positions, BUFFER_INDEXES::POSITION_BUFFER);
-		meshes["water"].set_geometry(water);
+		meshes["water"] = mesh(water);
+		meshes["water"].get_transform().position = vec3(0, 0, 0);
 	}
 
 	//set materials
@@ -102,7 +103,7 @@ bool load_content() {
 
 
 	// Get and bind shaders
-	{ 
+	{
 		//skybox shaders
 		sky_eff.add_shader("res/shaders/Skybox.vert", GL_VERTEX_SHADER);
 		sky_eff.add_shader("res/shaders/Skybox.frag", GL_FRAGMENT_SHADER);
@@ -113,7 +114,7 @@ bool load_content() {
 
 		sky_eff.build();
 		water_eff.build();
-		
+
 	}
 
 
@@ -137,7 +138,7 @@ bool load_content() {
 		skybox = mesh(geometry_builder::create_box());
 		skybox.get_transform().scale = vec3(3000, 3000, 3000);
 	}
-	
+
 
 	//skybox cubemap textures
 	{
@@ -276,11 +277,11 @@ bool update(float delta_time)
 
 bool render() {
 
-	//render skybox 
+	//set P and V
+
+	mat4 P;
+	mat4 V;
 	{
-		mat4 M = skybox.get_transform().get_transform_matrix();
-		mat4 P;
-		mat4 V;
 		//get different projections from different cameras
 		if (c1)
 		{
@@ -297,6 +298,12 @@ bool render() {
 			V = t_cam.get_view();
 			P = t_cam.get_projection();
 		}
+	}
+
+	//render skybox 
+	{
+		mat4 M = skybox.get_transform().get_transform_matrix();
+
 
 
 		glDisable(GL_DEPTH_TEST);
@@ -318,18 +325,16 @@ bool render() {
 		glEnable(GL_CULL_FACE);
 	}
 
-	for (auto &e : meshes) {
-		auto m = e.second;
+	//render water
+	{
+		auto m = meshes["water"];
 		// Bind effect
-		renderer::bind(eff);
+		renderer::bind(water_eff);
 		// Create MVP matrix
 		auto M = m.get_transform().get_transform_matrix();
-		auto V = f_cam.get_view();
-		auto P = f_cam.get_projection();
 		auto MVP = P * V * M;
 		// Set MVP matrix uniform
 		glUniformMatrix4fv(eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
-
 		// *********************************
 		// Set M matrix uniform
 		glUniformMatrix4fv(eff.get_uniform_location("M"), 1, GL_FALSE, value_ptr(M));
@@ -346,7 +351,6 @@ bool render() {
 		// *********************************
 	}
 
-	
 	return true;
 }
 
