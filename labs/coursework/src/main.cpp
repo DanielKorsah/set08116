@@ -82,21 +82,35 @@ bool load_content() {
 	{
 		geometry terrain;
 		geometry water;
-
-		vector<vec3> positions = makeMesh(100);
-		water.add_buffer(positions, BUFFER_INDEXES::POSITION_BUFFER);
-		positions = makeMesh(100);
-		terrain.add_buffer(positions, BUFFER_INDEXES::POSITION_BUFFER);
-
 		vector<vec3> norms;
-		terrain.add_buffer(norms, BUFFER_INDEXES::NORMAL_BUFFER);
+		vector<vec2> tex_coords;
+		int size = 100;
 
+		//water
+		{
+			vector<vec3> positions = makeMesh(norms, size);
+			setTexCoords(positions, tex_coords, size);
 
-		meshes["water"] = mesh(water);
-		meshes["water"].get_transform().position = vec3(0, 5, 0);
+			water.add_buffer(positions, BUFFER_INDEXES::POSITION_BUFFER);
+			water.add_buffer(norms, BUFFER_INDEXES::NORMAL_BUFFER);
+			water.add_buffer(tex_coords, BUFFER_INDEXES::TEXTURE_COORDS_0);
+			meshes["water"] = mesh(water);
+			meshes["water"].get_transform().position = vec3(0, 5, 0);
+		}
 
-		meshes["terrain"] = mesh(terrain);
-		meshes["terrain"].get_transform().position = vec3(0, 0, 0);
+		norms.clear();
+		tex_coords.clear();
+
+		//terrain
+		{
+			vector<vec3> positions = makeMesh(norms, 100);
+			setTexCoords(positions, tex_coords, size);
+			terrain.add_buffer(positions, BUFFER_INDEXES::POSITION_BUFFER);
+			terrain.add_buffer(norms, BUFFER_INDEXES::NORMAL_BUFFER);
+			terrain.add_buffer(tex_coords, BUFFER_INDEXES::TEXTURE_COORDS_0);
+			meshes["terrain"] = mesh(terrain);
+			meshes["terrain"].get_transform().position = vec3(0, 0, 0);
+		}
 
 	}
 
@@ -107,12 +121,12 @@ bool load_content() {
 
 		mat.set_specular(vec4(0.4f));
 		mat.set_shininess(25.0f);
-		mat.set_diffuse(vec4(0.2f, 0.2f, 1.0f, 0.3f));
+		mat.set_diffuse(vec4(0.2f, 0.0f, 1.0f, 0.3f));
 		meshes["water"].set_material(mat);
 
 		mat.set_specular(vec4(0.4f));
 		mat.set_shininess(25.0f);
-		mat.set_diffuse(vec4(0.2f, 0.1f, 0.2f, 1.0f));
+		mat.set_diffuse(vec4(0.2f, 1.0f, 0.2f, 1.0f));
 		meshes["terrain"].set_material(mat);
 
 	}
@@ -138,7 +152,7 @@ bool load_content() {
 	//camera properties
 	{
 		// Set free camera properties
-		f_cam.set_position(vec3(0, 20, -20));
+		f_cam.set_position(vec3(0, 20, 20));
 		f_cam.set_projection(half_pi<float>(), renderer::get_screen_aspect(), 0.1f, 4000.0f);
 
 		//set chase cam roperties
@@ -349,30 +363,14 @@ bool render() {
 		// Create MVP matrix
 		auto M = m.get_transform().get_transform_matrix();
 		mat4 MVP = P * V * M;
-		if (CHECK_GL_ERROR) {
-			std::cerr << "Crash" << std::endl;
-			// Throw exception
-			throw std::runtime_error("Error using material with renderer");
-		}
 		// Set MVP matrix uniform
 		glUniformMatrix4fv(low_poly_eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
 		// *********************************
-		if (CHECK_GL_ERROR) {
-			std::cerr << "Bang" << std::endl;
-			// Throw exception
-			throw std::runtime_error("Error using material with renderer");
-		}
 		// Set M matrix uniform
 		glUniformMatrix4fv(low_poly_eff.get_uniform_location("M"), 1, GL_FALSE, value_ptr(M));
-		if (CHECK_GL_ERROR) {
-			std::cerr << "Whallop" << std::endl;
-			// Throw exception
-			throw std::runtime_error("Error using material with renderer");
-		}
 		// Set N matrix uniform - remember - 3x3 matrix
 		glUniformMatrix3fv(low_poly_eff.get_uniform_location("N"), 1, GL_FALSE, value_ptr(m.get_transform().get_normal_matrix()));
 		// Bind material
-		
 		renderer::bind(m.get_material(), "mat");
 		// Bind light
 		renderer::bind(sun_dir, "light");
