@@ -8,10 +8,11 @@ using namespace graphics_framework;
 using namespace glm;
 
 
-
+#pragma region Top Level Variables
 effect eff;
 effect sky_eff;
 effect low_poly_eff;
+effect water_eff;
 
 
 free_camera f_cam;
@@ -58,6 +59,13 @@ float light_speed;
 
 shadow_map shadow;
 
+frame_buffer reflection;
+frame_buffer refraction;
+depth_buffer depth;
+
+#pragma endregion
+
+	
 bool initialise()
 {
 	glfwSetInputMode(renderer::get_window(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -141,10 +149,16 @@ bool load_content() {
 		low_poly_eff.add_shader("res/shaders/gouraud.vert", GL_VERTEX_SHADER);
 		low_poly_eff.add_shader("res/shaders/gouraud.frag", GL_FRAGMENT_SHADER);
 
+		water_eff.add_shader("res/shaders/gouraud.vert", GL_VERTEX_SHADER);
+		//water_eff.add_shader("res/shaders/waves.geom", GL_GEOMETRY_SHADER);
+		water_eff.add_shader("res/shaders/gouraud.frag", GL_FRAGMENT_SHADER);
+		
+
 
 
 		sky_eff.build();
 		low_poly_eff.build();
+		water_eff.build();
 
 	}
 
@@ -306,14 +320,14 @@ bool update(float delta_time)
 	return true;
 }
 
-bool render() {
-
+void pass()
+{
 	//set P and V
 
 	mat4 P;
 	mat4 V;
+	//get different projections from different cameras
 	{
-		//get different projections from different cameras
 		if (c1)
 		{
 			V = f_cam.get_view();
@@ -331,80 +345,103 @@ bool render() {
 		}
 	}
 
-	//render skybox 
+
+	//render to screen
 	{
-		mat4 M = skybox.get_transform().get_transform_matrix();
+		//render skybox 
+		{
+			mat4 M = skybox.get_transform().get_transform_matrix();
 
 
 
-		glDisable(GL_DEPTH_TEST);
-		glDepthMask(GL_FALSE);
-		glDisable(GL_CULL_FACE);
+			glDisable(GL_DEPTH_TEST);
+			glDepthMask(GL_FALSE);
+			glDisable(GL_CULL_FACE);
 
-		renderer::bind(sky_eff);
-		//remember auto appears unsafe for this use
-		mat4 MVP = P * V * M;
-		//set cubemap uniform
-		glUniformMatrix4fv(sky_eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
-		renderer::bind(sky_cube, 0);
-		glUniform1i(sky_eff.get_uniform_location("cubemap"), 0);
-		renderer::render(skybox);
+			renderer::bind(sky_eff);
+			//remember auto appears unsafe for this use
+			mat4 MVP = P * V * M;
+			//set cubemap uniform
+			glUniformMatrix4fv(sky_eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
+			renderer::bind(sky_cube, 0);
+			glUniform1i(sky_eff.get_uniform_location("cubemap"), 0);
+			renderer::render(skybox);
 
-		glEnable(GL_DEPTH_TEST);
-		glDepthMask(GL_TRUE);
-		glEnable(GL_CULL_FACE);
+			glEnable(GL_DEPTH_TEST);
+			glDepthMask(GL_TRUE);
+			glEnable(GL_CULL_FACE);
+		}
+		
+		//render water
+		{
+			mesh m = meshes["water"];
+			// Bind effect
+			renderer::bind(water_eff);
+			// Create MVP matrix
+			auto M = m.get_transform().get_transform_matrix();
+			mat4 MVP = P * V * M;
+			// Set MVP matrix uniform
+			glUniformMatrix4fv(water_eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
+			// *********************************
+			// Set M matrix uniform
+			glUniformMatrix4fv(water_eff.get_uniform_location("M"), 1, GL_FALSE, value_ptr(M));
+			// Set N matrix uniform - remember - 3x3 matrix
+			glUniformMatrix3fv(water_eff.get_uniform_location("N"), 1, GL_FALSE, value_ptr(m.get_transform().get_normal_matrix()));
+			// Bind material
+			renderer::bind(m.get_material(), "mat");
+			// Bind light
+			renderer::bind(sun_dir, "light");
+			// Set eye position - Get this from active camera
+			glUniform3fv(water_eff.get_uniform_location("eye_pos"), 1, value_ptr(f_cam.get_position()));
+
+			// Render mesh
+			renderer::render(m);
+			// *********************************
+		}
+
+		//render land
+		{
+			mesh m = meshes["terrain"];
+			// Bind effect
+			renderer::bind(low_poly_eff);
+			// Create MVP matrix
+			auto M = m.get_transform().get_transform_matrix();
+			auto MVP = P * V * M;
+			// Set MVP matrix uniform
+			glUniformMatrix4fv(low_poly_eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
+			// *********************************
+			// Set M matrix uniform
+			glUniformMatrix4fv(low_poly_eff.get_uniform_location("M"), 1, GL_FALSE, value_ptr(M));
+			// Set N matrix uniform - remember - 3x3 matrix
+			glUniformMatrix3fv(low_poly_eff.get_uniform_location("N"), 1, GL_FALSE, value_ptr(m.get_transform().get_normal_matrix()));
+			// Bind material
+			renderer::bind(m.get_material(), "mat");
+			// Bind light
+			renderer::bind(sun_dir, "light");
+			// Set eye position - Get this from active camera
+			glUniform3fv(low_poly_eff.get_uniform_location("eye_pos"), 1, value_ptr(f_cam.get_position()));
+			// Render mesh
+			renderer::render(m);
+		}
+	}
+}
+
+bool render() {
+
+	
+	
+	//render to buffers
+	{
+		renderer::set_render_target(refraction);
+		renderer::clear();
+		pass();
 	}
 
-	//render water
-	{
-		mesh m = meshes["water"];
-		// Bind effect
-		renderer::bind(low_poly_eff);
-		// Create MVP matrix
-		auto M = m.get_transform().get_transform_matrix();
-		mat4 MVP = P * V * M;
-		// Set MVP matrix uniform
-		glUniformMatrix4fv(low_poly_eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
-		// *********************************
-		// Set M matrix uniform
-		glUniformMatrix4fv(low_poly_eff.get_uniform_location("M"), 1, GL_FALSE, value_ptr(M));
-		// Set N matrix uniform - remember - 3x3 matrix
-		glUniformMatrix3fv(low_poly_eff.get_uniform_location("N"), 1, GL_FALSE, value_ptr(m.get_transform().get_normal_matrix()));
-		// Bind material
-		renderer::bind(m.get_material(), "mat");
-		// Bind light
-		renderer::bind(sun_dir, "light");
-		// Set eye position - Get this from active camera
-		glUniform3fv(low_poly_eff.get_uniform_location("eye_pos"), 1, value_ptr(f_cam.get_position()));
-		// Render mesh
-		renderer::render(m);
-		// *********************************
-	}
-
-	//render land
-	{
-		mesh m = meshes["terrain"];
-		// Bind effect
-		renderer::bind(low_poly_eff);
-		// Create MVP matrix
-		auto M = m.get_transform().get_transform_matrix();
-		auto MVP = P * V * M;
-		// Set MVP matrix uniform
-		glUniformMatrix4fv(low_poly_eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
-		// *********************************
-		// Set M matrix uniform
-		glUniformMatrix4fv(low_poly_eff.get_uniform_location("M"), 1, GL_FALSE, value_ptr(M));
-		// Set N matrix uniform - remember - 3x3 matrix
-		glUniformMatrix3fv(low_poly_eff.get_uniform_location("N"), 1, GL_FALSE, value_ptr(m.get_transform().get_normal_matrix()));
-		// Bind material
-		renderer::bind(m.get_material(), "mat");
-		// Bind light
-		renderer::bind(sun_dir, "light");
-		// Set eye position - Get this from active camera
-		glUniform3fv(low_poly_eff.get_uniform_location("eye_pos"), 1, value_ptr(f_cam.get_position()));
-		// Render mesh
-		renderer::render(m);
-	}
+	//render to screen
+	renderer::set_render_target();
+	renderer::clear();
+	pass();
+	
 
 	return true;
 }
