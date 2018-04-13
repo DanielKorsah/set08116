@@ -52,6 +52,8 @@ uniform vec3 eye_pos;
 // Texture
 uniform sampler2D tex;
 
+//uniform sampler2d transparent_tex;
+
 
 
 // Incoming position
@@ -147,23 +149,34 @@ vec4 SpotCalc()
   return spot;
 }
 
-vec4 Fresnel()
+vec4 Fresnel(vec4 lit_colour)
 {
     vec3 view_dir = normalize(eye_pos - world_position);
-    float opacity;
+    float opacity = 0;
+	vec4 transparent = vec4(1, 1, 1, 0);
     //dot of view and norm = cos(angle) --- where 90 degree angle to norm = cos(90) = zero opacity
+	
     opacity = dot(transformed_normal, view_dir);
-    vec4 transparent = vec4(1, 1, 1, 0);
-
-    vec4 mix_colour = mix(colour, transparent, opacity);
+	
+    vec4 mix_colour = mix(lit_colour, transparent, opacity);
     
+
     //visual debugging
-    //if(opacity< 0)
-    //    colour = vec4(0,1,0,1);
-    //if(opacity == 0.0f)
-    //    colour = vec4(1,0,0,1);
-    //else
-    //    colour = vec4(1,1,1,1);
+	vec4 db;
+    if(opacity< 0){
+        db = vec4(0,1,0,1);
+	}
+    else if(opacity == 0){
+        db = vec4(1,0,0,1);
+	}
+	else if(opacity > 0){
+		db = vec4(1,0,1,1);
+	}
+    else
+		db = vec4(1, 1, 1, 1);
+
+
+	//return db;
     return mix_colour;
 }
 
@@ -174,7 +187,8 @@ void main() {
 	all_lights+= DirCalc();
 	//all_lights+= PointCalc();
 	//all_lights+= SpotCalc();
-	colour = all_lights;
-    colour = colour = debug_colours;
-    colour = Fresnel();
+	//colour = debug_colours;
+	colour = Fresnel(debug_colours);
+	//colour = all_lights;
+    
   }

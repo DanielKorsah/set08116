@@ -74,7 +74,9 @@ float quad_size = 1;
 	void setNormal(vector<vec3> &normals, vec3 a, vec3 b)
 	{
 		vec3 norm = normalize(cross(a, b));
-
+		norm = vec3(0, 1, 0);
+		normals.push_back(norm);
+		normals.push_back(norm);
 		normals.push_back(norm);
 	}
 
@@ -84,7 +86,7 @@ float quad_size = 1;
 		{
 			vec2 coord;
 			coord.x = p.x / size;
-			coord.y = p.y / size;
+			coord.y = p.z / size;
 			tex_coords.push_back(coord);
 		}
 	}

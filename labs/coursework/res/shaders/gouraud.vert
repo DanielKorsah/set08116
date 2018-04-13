@@ -54,7 +54,7 @@ void main() {
   // Calculate ambient component
   vec4 ambient = mat.diffuse_reflection * light.ambient_intensity;
   // Transform the normal
-  vec3 transformed_normal = N * normal;
+  vec3 transformed_normal = normal;
   // Calculate k
   float k = max(dot(transformed_normal, light.light_dir), 0);
   // Calculate diffuse
@@ -76,9 +76,9 @@ void main() {
   // Set secondary
   secondary = specular;
   // Ensure primary and secondary alphas are 1
-  primary.r = sin(p*0.6);
-  primary.g = -sin(p*0.6);
-  primary.b = 0;
+  primary.r = sin(p*0.4)+1;
+  primary.g = 0;
+  primary.b = -sin(p*0.4)+1;
   primary.a = 1;
   secondary.a = 1;
   // Pass through texture coordinate

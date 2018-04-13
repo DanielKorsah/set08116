@@ -30,15 +30,19 @@ layout(location = 3) out flat vec4 debug_colours;
 
 void main()
 {
-	float p = 1.5 * cos(position.x/20*2*M_PI + offset.x); 
+	float p = /*amplitude*/0.5 * (cos(position.x/20*(2*M_PI) * (3 /*frequency*/) + offset.x));
+	p +=  0.5 * (cos(position.z/20*2*M_PI * 3 + offset.x));
+	p *= 10;
+	round(p);
+	p /= 10;
   	gl_Position = MVP * vec4(position.x, p, position.z, 1);
 	// Output texture coordinate to fragement shader
-	world_position = vec3(M * vec4(position, 1.0f));
+	world_position = vec3(M * vec4(position.x, p, position.z, 1.0f));
 	transformed_normal = N * normal;
 	tex_coord = tex_coord_in;
 
-	debug_colours.r = sin(p*0.6);
-  	debug_colours.g = -sin(p*0.6);
+	debug_colours.r = sin(p*0.8)+1;
+  	debug_colours.g = -sin(p*0.8)+1;
   	debug_colours.b = 0;
   	debug_colours.a = 1;
 }

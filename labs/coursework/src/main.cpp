@@ -67,6 +67,8 @@ depth_buffer depth;
 int i;
 float dt;
 
+vector<vec3> norms;
+
 #pragma endregion
 
 	
@@ -94,7 +96,7 @@ bool load_content() {
 	{
 		geometry terrain;
 		geometry water;
-		vector<vec3> norms;
+		
 		vector<vec2> tex_coords;
 		int size = 100;
 
@@ -133,7 +135,7 @@ bool load_content() {
 
 		mat.set_specular(vec4(0.4f));
 		mat.set_shininess(25.0f);
-		mat.set_diffuse(vec4(0.2f, 0.0f, 1.0f, 0.3f));
+		mat.set_diffuse(vec4(0.2f, 0.0f, 1.0f, 1.0f));
 		meshes["water"].set_material(mat);
 
 		mat.set_specular(vec4(0.4f));
@@ -331,7 +333,7 @@ bool update(float delta_time)
 	return true;
 }
 
-void pass()
+void pass(bool no_water)
 {
 	//set P and V
 
@@ -383,30 +385,38 @@ void pass()
 			glEnable(GL_CULL_FACE);
 		}
 		
-		//render water
+		if (!no_water)
 		{
-			mesh m = meshes["water"];
-			// Bind effect
-			renderer::bind(fresnel_eff);
-			// Create MVP matrix
-			auto M = m.get_transform().get_transform_matrix();
-			mat4 MVP = P * V * M;
-			// Set MVP matrix uniform
-			glUniformMatrix4fv(fresnel_eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
-			// Set M matrix uniform
-			glUniformMatrix4fv(fresnel_eff.get_uniform_location("M"), 1, GL_FALSE, value_ptr(M));
-			// Set N matrix uniform - remember - 3x3 matrix
-			glUniformMatrix3fv(fresnel_eff.get_uniform_location("N"), 1, GL_FALSE, value_ptr(m.get_transform().get_normal_matrix()));
-			// Bind material
-			renderer::bind(m.get_material(), "mat");
-			// Bind light
-			renderer::bind(sun_dir, "light");
-			// Set eye position - Get this from active camera
-			glUniform3fv(fresnel_eff.get_uniform_location("eye_pos"), 1, value_ptr(f_cam.get_position()));
-			glUniform3fv(fresnel_eff.get_uniform_location("offset"), 1, value_ptr(vec3(dt)));
 
-			// Render mesh
-			renderer::render(m);
+
+			//render water
+			{
+				mesh m = meshes["water"];
+				// Bind effect
+				renderer::bind(fresnel_eff);
+				// Create MVP matrix
+				auto M = m.get_transform().get_transform_matrix();
+				mat4 MVP = P * V * M;
+				// Set MVP matrix uniform
+				glUniformMatrix4fv(fresnel_eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
+				// Set M matrix uniform
+				glUniformMatrix4fv(fresnel_eff.get_uniform_location("M"), 1, GL_FALSE, value_ptr(M));
+				// Set N matrix uniform - remember - 3x3 matrix
+
+
+
+				glUniformMatrix3fv(fresnel_eff.get_uniform_location("N"), 1, GL_FALSE, value_ptr(m.get_transform().get_normal_matrix()));
+				// Bind material
+				renderer::bind(m.get_material(), "mat");
+				// Bind light
+				renderer::bind(sun_dir, "light");
+				// Set eye position - Get this from active camera
+				glUniform3fv(fresnel_eff.get_uniform_location("eye_pos"), 1, value_ptr(f_cam.get_position()));
+				glUniform3fv(fresnel_eff.get_uniform_location("offset"), 1, value_ptr(vec3(dt)));
+
+				// Render mesh
+				renderer::render(m);
+			}
 		}
 
 		//render land
@@ -424,6 +434,7 @@ void pass()
 			glUniformMatrix4fv(low_poly_eff.get_uniform_location("M"), 1, GL_FALSE, value_ptr(M));
 			// Set N matrix uniform - remember - 3x3 matrix
 			glUniformMatrix3fv(low_poly_eff.get_uniform_location("N"), 1, GL_FALSE, value_ptr(m.get_transform().get_normal_matrix()));
+			cout << "land: " <<  m.get_transform().get_normal_matrix()[0][1] << endl;
 			// Bind material
 			renderer::bind(m.get_material(), "mat");
 			// Bind light
@@ -444,13 +455,13 @@ bool render() {
 	{
 		renderer::set_render_target(refraction);
 		renderer::clear();
-		pass();
+		pass(true);
 	}
 
 	//render to screen
 	renderer::set_render_target();
 	renderer::clear();
-	pass();
+	pass(false);
 	
 
 	return true;
