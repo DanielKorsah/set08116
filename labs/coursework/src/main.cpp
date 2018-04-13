@@ -63,6 +63,9 @@ frame_buffer reflection;
 frame_buffer refraction;
 depth_buffer depth;
 
+int i;
+float dt;
+
 #pragma endregion
 
 	
@@ -174,7 +177,7 @@ bool load_content() {
 		c_cam.set_springiness(0.5f);
 
 		//set target camera properties
-		t_cam.set_position(vec3(-10.0f, 30.0f, 50.0f));
+		t_cam.set_position(vec3(70.0f, 9.0f, 0.0f));
 		t_cam.set_projection(half_pi<float>(), renderer::get_screen_aspect(), 0.1f, 4000.0f);
 	}
 
@@ -197,6 +200,9 @@ bool load_content() {
 
 bool update(float delta_time)
 {
+	i++;
+	dt += delta_time;
+
 
 	//choose free
 	if (glfwGetKey(renderer::get_window(), GLFW_KEY_1))
@@ -393,6 +399,7 @@ void pass()
 			renderer::bind(sun_dir, "light");
 			// Set eye position - Get this from active camera
 			glUniform3fv(water_eff.get_uniform_location("eye_pos"), 1, value_ptr(f_cam.get_position()));
+			glUniform3fv(water_eff.get_uniform_location("offset"), 1, value_ptr(vec3(dt)));
 
 			// Render mesh
 			renderer::render(m);

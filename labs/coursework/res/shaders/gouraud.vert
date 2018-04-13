@@ -30,6 +30,7 @@ uniform material mat;
 // Position of the camera
 uniform vec3 eye_pos;
 
+uniform vec3 offset;
 // Incoming position
 layout(location = 0) in vec3 position;
 // Incoming normal
@@ -38,16 +39,16 @@ layout(location = 2) in vec3 normal;
 layout(location = 10) in vec2 tex_coord_in;
 
 // Outgoing primary colour
-layout(location = 0) out vec4 primary;
+layout(location = 0) out flat vec4 primary;
 // Outgoing secondary colour
-layout(location = 1) out vec4 secondary;
+layout(location = 1) out flat vec4 secondary;
 // Outgoing texture coordinate
 layout(location = 2) out vec2 tex_coord_out;
 
 void main() {
   // *********************************
   // Calculate position
-  float p = 1.5 * cos(position.z/20*2*M_PI);
+  float p = 1.5 * cos(position.z/20*2*M_PI + offset.x); 
   gl_Position = MVP * vec4(position.x, p, position.z, 1);
   
   // Calculate ambient component
@@ -75,6 +76,9 @@ void main() {
   // Set secondary
   secondary = specular;
   // Ensure primary and secondary alphas are 1
+  primary.r = sin(p*0.6);
+  primary.g = -sin(p*0.6);
+  primary.b = 0;
   primary.a = 1;
   secondary.a = 1;
   // Pass through texture coordinate

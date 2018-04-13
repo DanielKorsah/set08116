@@ -6,7 +6,7 @@ using namespace graphics_framework;
 using namespace glm;
 using namespace std;
 
-float quad_size = 2;
+float quad_size = 1;
 
 
 	vector<vec3> makeMesh(vector<vec3> &normals, int size)
