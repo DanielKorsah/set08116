@@ -387,13 +387,12 @@ void pass()
 		{
 			mesh m = meshes["water"];
 			// Bind effect
-			renderer::bind(water_eff);
+			renderer::bind(fresnel_eff);
 			// Create MVP matrix
 			auto M = m.get_transform().get_transform_matrix();
 			mat4 MVP = P * V * M;
 			// Set MVP matrix uniform
 			glUniformMatrix4fv(fresnel_eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
-			// *********************************
 			// Set M matrix uniform
 			glUniformMatrix4fv(fresnel_eff.get_uniform_location("M"), 1, GL_FALSE, value_ptr(M));
 			// Set N matrix uniform - remember - 3x3 matrix
@@ -408,7 +407,6 @@ void pass()
 
 			// Render mesh
 			renderer::render(m);
-			// *********************************
 		}
 
 		//render land
