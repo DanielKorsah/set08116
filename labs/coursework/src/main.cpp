@@ -13,6 +13,7 @@ effect eff;
 effect sky_eff;
 effect low_poly_eff;
 effect water_eff;
+effect fresnel_eff;
 
 
 free_camera f_cam;
@@ -155,6 +156,9 @@ bool load_content() {
 		water_eff.add_shader("res/shaders/gouraud.vert", GL_VERTEX_SHADER);
 		//water_eff.add_shader("res/shaders/waves.geom", GL_GEOMETRY_SHADER);
 		water_eff.add_shader("res/shaders/gouraud.frag", GL_FRAGMENT_SHADER);
+
+		fresnel_eff.add_shader("res/shaders/fresnel.vert", GL_VERTEX_SHADER);
+		fresnel_eff.add_shader("res/shaders/fresnel.frag", GL_FRAGMENT_SHADER);
 		
 
 
@@ -162,6 +166,7 @@ bool load_content() {
 		sky_eff.build();
 		low_poly_eff.build();
 		water_eff.build();
+		fresnel_eff.build();
 
 	}
 
@@ -387,19 +392,19 @@ void pass()
 			auto M = m.get_transform().get_transform_matrix();
 			mat4 MVP = P * V * M;
 			// Set MVP matrix uniform
-			glUniformMatrix4fv(water_eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
+			glUniformMatrix4fv(fresnel_eff.get_uniform_location("MVP"), 1, GL_FALSE, value_ptr(MVP));
 			// *********************************
 			// Set M matrix uniform
-			glUniformMatrix4fv(water_eff.get_uniform_location("M"), 1, GL_FALSE, value_ptr(M));
+			glUniformMatrix4fv(fresnel_eff.get_uniform_location("M"), 1, GL_FALSE, value_ptr(M));
 			// Set N matrix uniform - remember - 3x3 matrix
-			glUniformMatrix3fv(water_eff.get_uniform_location("N"), 1, GL_FALSE, value_ptr(m.get_transform().get_normal_matrix()));
+			glUniformMatrix3fv(fresnel_eff.get_uniform_location("N"), 1, GL_FALSE, value_ptr(m.get_transform().get_normal_matrix()));
 			// Bind material
 			renderer::bind(m.get_material(), "mat");
 			// Bind light
 			renderer::bind(sun_dir, "light");
 			// Set eye position - Get this from active camera
-			glUniform3fv(water_eff.get_uniform_location("eye_pos"), 1, value_ptr(f_cam.get_position()));
-			glUniform3fv(water_eff.get_uniform_location("offset"), 1, value_ptr(vec3(dt)));
+			glUniform3fv(fresnel_eff.get_uniform_location("eye_pos"), 1, value_ptr(f_cam.get_position()));
+			glUniform3fv(fresnel_eff.get_uniform_location("offset"), 1, value_ptr(vec3(dt)));
 
 			// Render mesh
 			renderer::render(m);

@@ -19,5 +19,6 @@ void main() {
   vec4 tex_colour = texture(tex, tex_coord_geom);
   // Calculate colour
   colour = primary_out; //+ secondary_out;
+
   // *********************************
 }
