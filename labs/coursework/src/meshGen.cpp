@@ -6,6 +6,7 @@ using namespace graphics_framework;
 using namespace glm;
 using namespace std;
 
+float quad_size = 2;
 
 
 	vector<vec3> makeMesh(vector<vec3> &normals, int size)
@@ -18,7 +19,7 @@ using namespace std;
 		for (int i = 0; i < size; i++)
 		{
 			makeRow(normals, verteces, row_origin, size);
-			row_origin.z += 1;
+			row_origin.z += quad_size;
 		}
 
 		return verteces;
@@ -30,19 +31,20 @@ using namespace std;
 		for (int i = 0; i < size; i++)
 		{
 			makeSplitQuad(normals, verteces, row_origin);
-			row_origin += vec3(1.0f, 0, 0);
+			row_origin += vec3(quad_size, 0, 0);
 		}
 	}
 
 	void makeSplitQuad(vector<vec3> &verteces, vector<vec3> &normals, vec3 quad_origin)
 	{
 		vec3 triangle_origin = quad_origin;
+		
 
 		//first triangle
 		{
 			verteces.push_back(triangle_origin);
-			vec3 a = vec3(triangle_origin.x, triangle_origin.y, triangle_origin.z + 1);
-			vec3 b = vec3(triangle_origin.x + 1, triangle_origin.y, triangle_origin.z + 1);
+			vec3 a = vec3(triangle_origin.x, triangle_origin.y, triangle_origin.z + quad_size);
+			vec3 b = vec3(triangle_origin.x + quad_size, triangle_origin.y, triangle_origin.z + quad_size);
 
 			verteces.push_back(a);
 			verteces.push_back(b);
@@ -52,17 +54,17 @@ using namespace std;
 			
 		}
 
-		triangle_origin = vec3(triangle_origin.x + 1, triangle_origin.y, triangle_origin.z + 1);
+		triangle_origin = vec3(triangle_origin.x + quad_size, triangle_origin.y, triangle_origin.z + quad_size);
 
 		//second triangle
 		{
 			verteces.push_back(triangle_origin);
 
-			vec3 a = vec3(triangle_origin.x, triangle_origin.y, triangle_origin.z - 1);
-			vec3 b = vec3(triangle_origin.x - 1, triangle_origin.y, triangle_origin.z - 1);
+			vec3 a = vec3(triangle_origin.x, triangle_origin.y, triangle_origin.z - quad_size);
+			vec3 b = vec3(triangle_origin.x - quad_size, triangle_origin.y, triangle_origin.z - quad_size);
 
-			verteces.push_back(vec3(triangle_origin.x, triangle_origin.y, triangle_origin.z - 1));
-			verteces.push_back(vec3(triangle_origin.x - 1, triangle_origin.y, triangle_origin.z - 1));
+			verteces.push_back(vec3(triangle_origin.x, triangle_origin.y, triangle_origin.z - quad_size));
+			verteces.push_back(vec3(triangle_origin.x - quad_size, triangle_origin.y, triangle_origin.z - quad_size));
 
 			setNormal(normals, triangle_origin - a, triangle_origin - b);
 		}

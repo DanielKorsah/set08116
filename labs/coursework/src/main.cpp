@@ -187,8 +187,8 @@ bool load_content() {
 
 	//skybox cubemap textures
 	{
-		array<string, 6> filenames = { "res/textures/rainforest_ft.png", "res/textures/rainforest_bk.png", "res/textures/rainforest_up.png", "res/textures/rainforest_dn.png",
-			"res/textures/rainforest_rt.png", "res/textures/rainforest_lf.png" };
+		array<string, 6> filenames = { "res/textures/sahara_ft.jpg", "res/textures/sahara_bk.jpg", "res/textures/sahara_up.jpg", "res/textures/sahara_dn.jpg",
+			"res/textures/sahara_rt.jpg", "res/textures/sahara_lf.jpg" };
 		sky_cube = cubemap(filenames);
 	}
 

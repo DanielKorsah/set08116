@@ -47,8 +47,8 @@ layout(location = 2) out vec2 tex_coord_out;
 void main() {
   // *********************************
   // Calculate position
-  position.y += 30 * cos(position.z/20*2*M_PI);
-  gl_Position = MVP * vec4(position, 1);
+  float p = 1.5 * cos(position.z/20*2*M_PI);
+  gl_Position = MVP * vec4(position.x, p, position.z, 1);
   
   // Calculate ambient component
   vec4 ambient = mat.diffuse_reflection * light.ambient_intensity;
@@ -60,7 +60,7 @@ void main() {
   vec4 diffuse = k * mat.diffuse_reflection * light.light_colour;
   // Calculate world position of vertex
   vec4 world_position = M * vec4(position, 1);
-  world_position.y += 30 * cos(world_position.z/20*2*M_PI);
+  //world_position.y += 30 * cos(world_position.z/20*2*M_PI);
   // Calculate view direction
   vec3 view_dir = normalize(eye_pos - vec3(world_position));
   // Calculate half vector between view_dir and light_dir
