@@ -53,7 +53,7 @@ uniform vec3 eye_pos;
 uniform sampler2D tex;
 
 //uniform sampler2d transparent_tex;
-
+uniform sampler2D refraction_tex;
 
 
 // Incoming position
@@ -155,11 +155,15 @@ vec4 Fresnel(vec4 lit_colour)
     float opacity = 0;
 	vec4 transparent = vec4(1, 1, 1, 0);
     //dot of view and norm = cos(angle) --- where 90 degree angle to norm = cos(90) = zero opacity
-	
+	vec4 tex_colour = texture(refraction_tex, tex_coord);
+	tex_colour.a = 1;
     opacity = dot(transformed_normal, view_dir);
 	
-    vec4 mix_colour = mix(lit_colour, transparent, opacity);
     
+	lit_colour += tex_colour;
+	vec4 mix_colour = mix(lit_colour, transparent, opacity);
+    
+    return mix_colour;
 
     //visual debugging
 	vec4 db;
@@ -177,7 +181,6 @@ vec4 Fresnel(vec4 lit_colour)
 
 
 	//return db;
-    return mix_colour;
 }
 
 													

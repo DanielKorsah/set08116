@@ -80,8 +80,9 @@ bool initialise()
 }
 
 bool load_content() {
-
+	
 	shadow = shadow_map(renderer::get_screen_width(), renderer::get_screen_height());
+	refraction = frame_buffer(renderer::get_screen_width(), renderer::get_screen_height());
 	//load lights
 	{
 		//set up the directional
@@ -402,9 +403,6 @@ void pass(bool no_water)
 				// Set M matrix uniform
 				glUniformMatrix4fv(fresnel_eff.get_uniform_location("M"), 1, GL_FALSE, value_ptr(M));
 				// Set N matrix uniform - remember - 3x3 matrix
-
-
-
 				glUniformMatrix3fv(fresnel_eff.get_uniform_location("N"), 1, GL_FALSE, value_ptr(m.get_transform().get_normal_matrix()));
 				// Bind material
 				renderer::bind(m.get_material(), "mat");
@@ -412,7 +410,11 @@ void pass(bool no_water)
 				renderer::bind(sun_dir, "light");
 				// Set eye position - Get this from active camera
 				glUniform3fv(fresnel_eff.get_uniform_location("eye_pos"), 1, value_ptr(f_cam.get_position()));
+				//set wave offset tick
 				glUniform3fv(fresnel_eff.get_uniform_location("offset"), 1, value_ptr(vec3(dt)));
+				//refrection texture in
+				renderer::bind(refraction.get_frame(), 1);
+				glUniform1i(eff.get_uniform_location("tex"), 1);
 
 				// Render mesh
 				renderer::render(m);
@@ -453,6 +455,8 @@ bool render() {
 	
 	//render to buffers
 	{
+
+
 		renderer::set_render_target(refraction);
 		renderer::clear();
 		pass(true);
