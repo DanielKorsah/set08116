@@ -87,7 +87,7 @@ bool load_content() {
 	//load lights
 	{
 		//set up the directional
-		sun_dir.set_direction(normalize(vec3(-1, 0.1, 0)));
+		sun_dir.set_direction(normalize(vec3(-1, 0.1, 1)));
 		sun_dir.set_ambient_intensity(vec4(0.1, 0.1, 0.1, 1.0));
 		//set colour as white
 		sun_dir.set_light_colour(vec4(0.5f, 0.5f, 0.5f, 1));
@@ -111,7 +111,7 @@ bool load_content() {
 			water.add_buffer(norms, BUFFER_INDEXES::NORMAL_BUFFER);
 			water.add_buffer(tex_coords, BUFFER_INDEXES::TEXTURE_COORDS_0);
 			meshes["water"] = mesh(water);
-			meshes["water"].get_transform().position = vec3(0, 5, 0);
+			meshes["water"].get_transform().position = vec3(0, 0, 0);
 		}
 
 		norms.clear();
@@ -125,7 +125,7 @@ bool load_content() {
 			terrain.add_buffer(norms, BUFFER_INDEXES::NORMAL_BUFFER);
 			terrain.add_buffer(tex_coords, BUFFER_INDEXES::TEXTURE_COORDS_0);
 			meshes["terrain"] = mesh(terrain);
-			meshes["terrain"].get_transform().position = vec3(0, 0, 0);
+			meshes["terrain"].get_transform().position = vec3(0, -1, 0);
 		}
 
 	}

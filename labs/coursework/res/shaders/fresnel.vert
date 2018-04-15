@@ -31,8 +31,8 @@ layout (location = 5) out vec3 reflect_tex_coord_out;
 
 void main()
 {
-	float p = /*amplitude*/0.3 * (cos(position.x/20*(2*M_PI) * (2 /*frequency*/) + offset.x));
-	p +=  0.3 * (cos(position.z/20*2*M_PI * 2 + offset.x));
+	float p = /*amplitude*/0.6 * (cos(position.x/20*(2*M_PI) * (2 /*frequency*/) + offset.x));
+	p +=  0.6 * (cos(position.z/20*2*M_PI * 2 + offset.x));
 	p *= 10000000;
 	round(p);
 	p /= 10000000;

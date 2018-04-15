@@ -93,6 +93,12 @@ vec4 DirCalc()
 
 	// Calculate final colour
 	vec4 dir = primary * sky_colour + specular;
+
+    //debug sanity check
+    //dir = vec4(1, 0, 0, 1);
+    //dir = diffuse;
+    dir = ambient;
+    dir.a = 1;
 	return dir;
 }		
 
