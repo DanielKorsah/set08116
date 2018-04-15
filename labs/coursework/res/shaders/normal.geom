@@ -9,8 +9,6 @@ layout ( triangle_strip, max_vertices = 3 ) out;
 // The normal matrix in
 uniform mat3 N;
 uniform mat4 M;
-//scrolling offset
-uniform vec3 offset;
 
 //incoming normal
 layout(location = 2) in vec3[] normal_out;
@@ -31,7 +29,7 @@ layout(location = 2) out vec2 tex_coord_g;
 layout(location = 3) out flat vec4 debug_colours_g;
 
 
-vec3 calculateTriangleNormal()
+vec3 calculateNormal()
 {
 	vec3 a = gl_in[1].gl_Position.xyz - gl_in[0].gl_Position.xyz;
 	vec3 b = gl_in[2].gl_Position.xyz - gl_in[0].gl_Position.xyz;
@@ -42,7 +40,7 @@ vec3 calculateTriangleNormal()
 
 void main(void)
 {
-    transformed_normal = calculateTriangleNormal();
+    transformed_normal = calculateNormal();
     for(int i = 0; i<3; i++)
     {
         vec3 world_position = vec3(gl_in[i].gl_Position);
