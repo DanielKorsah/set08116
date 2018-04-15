@@ -9,11 +9,12 @@ layout ( triangle_strip, max_vertices = 3 ) out;
 // The normal matrix in
 uniform mat3 N;
 uniform mat4 M;
+uniform vec3 eye_pos;
 
 //incoming normal
 layout(location = 2) in vec3[] normal_out;
 // texture coordinate from frag
-layout(location = 3) in vec2[] tex_coord;
+layout(location = 3) in vec2[] tex_coord_out;
 //debug colours
 layout(location = 4) in flat vec4[] debug_colours;
 
@@ -24,9 +25,11 @@ layout(location = 0) out vec3 world_position;
 // Outgoing normal
 layout(location = 1) out vec3 transformed_normal;
 // Outgoing texture coordinate
-layout(location = 2) out vec2 tex_coord_g;
+layout(location = 2) out vec2 tex_coord;
 //debug colours
 layout(location = 3) out flat vec4 debug_colours_g;
+
+layout (location = 5) out vec3 reflection_tex_coord;
 
 
 vec3 calculateNormal()
@@ -41,8 +44,12 @@ vec3 calculateNormal()
 void main(void)
 {
     transformed_normal = calculateNormal();
+    
+    
     for(int i = 0; i<3; i++)
     {
+        vec3 reflect_position = (M * vec4(gl_in[i].gl_Position.xyz, 1)).xyz;
+        reflection_tex_coord = normalize(reflect(reflect_position - eye_pos, transformed_normal));
         vec3 world_position = vec3(gl_in[i].gl_Position);
   	    gl_Position = gl_in[i].gl_Position;
         EmitVertex();

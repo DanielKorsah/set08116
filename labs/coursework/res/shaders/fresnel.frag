@@ -55,18 +55,20 @@ uniform sampler2D tex;
 //uniform sampler2d transparent_tex;
 uniform sampler2D refraction_tex;
 
+uniform samplerCube skybox;
 
 // Incoming position
 layout(location = 0) in vec3 world_position;
-
 // Incoming normal
 layout(location = 1) in vec3 transformed_normal;
-
 // Incoming texture coordinate
 layout(location = 2) in vec2 tex_coord;
-
 //debug colours
 layout(location = 3)in flat vec4 debug_colours;
+//reflection texture coord
+layout(location = 5) in vec3 reflection_tex_coord;
+
+
 
 // Outgoing colour
 layout(location = 0) out vec4 colour;
@@ -85,12 +87,12 @@ vec4 DirCalc()
 	// Calculate specular component
 	vec4 specular =  pow(max(dot(transformed_normal, half_v), 0.0f), mat.shininess) * (mat.specular_reflection * sun.light_colour);
 	// Sample texture
-	vec4 tex_colour = texture(tex, tex_coord);
+	vec4 sky_colour = texture(skybox, reflection_tex_coord);
 	// Calculate primary colour component
 	vec4 primary = mat.emissive + ambient + diffuse;
 
 	// Calculate final colour
-	vec4 dir = primary * tex_colour + specular;
+	vec4 dir = primary * sky_colour + specular;
 	return dir;
 }		
 
@@ -159,9 +161,12 @@ vec4 Fresnel(vec4 lit_colour)
 	vec4 tex_colour = texture(refraction_tex, tex_coord);
 	tex_colour.a = 1;
     opacity = dot(transformed_normal, view_dir);
-	
     
+    //Broken turns things black
 	//lit_colour = DirCalc();
+
+    vec4 sky_colour = texture(skybox, reflection_tex_coord);
+    //lit_colour *= sky_colour;
 	vec4 mix_colour = mix(lit_colour, transparent, opacity);
     
     return mix_colour;
