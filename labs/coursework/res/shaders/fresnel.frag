@@ -144,7 +144,8 @@ vec4 SpotCalc()
   // Calculate primary colour component
   vec4 primary = mat.emissive + diffuse;
   // Calculate final colour - remember alpha
-  vec4 spot = primary * tex_colour + specular;
+  vec4 spot = primary /* tex_colour*/ + specular;
+  spot.a = 1;
 
   return spot;
 }
@@ -160,7 +161,7 @@ vec4 Fresnel(vec4 lit_colour)
     opacity = dot(transformed_normal, view_dir);
 	
     
-	lit_colour += tex_colour;
+	//lit_colour = DirCalc();
 	vec4 mix_colour = mix(lit_colour, transparent, opacity);
     
     return mix_colour;
@@ -191,7 +192,7 @@ void main() {
 	//all_lights+= PointCalc();
 	//all_lights+= SpotCalc();
 	//colour = debug_colours;
-	colour = Fresnel(debug_colours);
+	colour = Fresnel(mat.diffuse_reflection);
 	//colour = all_lights;
     
   }

@@ -5,28 +5,27 @@
 uniform mat4 M;
 // The transformation matrix
 uniform mat4 MVP;
-// The normal matrix
-uniform mat3 N;
-
 
 //scrolling offset
 uniform vec3 offset;
 
+
+
 //incoming position
 layout (location = 0) in vec3 position;
 //incoming normal
-layout(location = 2) in vec3 normal;
+layout(location = 2) in vec3[] normal;
 //incoming texture coordinate
 layout (location = 10) in vec2 tex_coord_in;
 
 // Outgoing position
-layout(location = 0) out vec3 world_position;
-// Outgoing normal
-layout(location = 1) out vec3 transformed_normal;
+//incoming normal
+layout(location = 2) out vec3 normal_out;
 // Outgoing texture coordinate
-layout(location = 2) out vec2 tex_coord;
+layout(location = 3) out vec2 tex_coord;
 //debug colours
-layout(location = 3) out flat vec4 debug_colours;
+layout(location = 4) out flat vec4 debug_colours;
+
 
 void main()
 {
@@ -36,9 +35,8 @@ void main()
 	round(p);
 	p /= 10;
   	gl_Position = MVP * vec4(position.x, p, position.z, 1);
+
 	// Output texture coordinate to fragement shader
-	world_position = vec3(M * vec4(position.x, p, position.z, 1.0f));
-	transformed_normal = N * normal;
 	tex_coord = tex_coord_in;
 
 	debug_colours.r = sin(p*0.8)+1;

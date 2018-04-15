@@ -136,7 +136,7 @@ bool load_content() {
 
 		mat.set_specular(vec4(0.4f));
 		mat.set_shininess(25.0f);
-		mat.set_diffuse(vec4(0.2f, 0.0f, 1.0f, 1.0f));
+		mat.set_diffuse(vec4(0.2f, 0.8f, 1.0f, 1.0f));
 		meshes["water"].set_material(mat);
 
 		mat.set_specular(vec4(0.4f));
@@ -161,6 +161,7 @@ bool load_content() {
 		water_eff.add_shader("res/shaders/gouraud.frag", GL_FRAGMENT_SHADER);
 
 		fresnel_eff.add_shader("res/shaders/fresnel.vert", GL_VERTEX_SHADER);
+		fresnel_eff.add_shader("res/shaders/normal.geom", GL_GEOMETRY_SHADER);
 		fresnel_eff.add_shader("res/shaders/fresnel.frag", GL_FRAGMENT_SHADER);
 		
 
@@ -411,10 +412,12 @@ void pass(bool no_water)
 				// Set eye position - Get this from active camera
 				glUniform3fv(fresnel_eff.get_uniform_location("eye_pos"), 1, value_ptr(f_cam.get_position()));
 				//set wave offset tick
-				glUniform3fv(fresnel_eff.get_uniform_location("offset"), 1, value_ptr(vec3(dt)));
+				glUniform3fv(fresnel_eff.get_uniform_location("offset"), 1, value_ptr(vec3(dt*2)));
+				//
+				glUniformMatrix4fv(fresnel_eff.get_uniform_location("M"), 1, GL_FALSE, value_ptr(M));
 				//refrection texture in
-				renderer::bind(refraction.get_frame(), 1);
-				glUniform1i(eff.get_uniform_location("tex"), 1);
+				//renderer::bind(refraction.get_frame(), 1);
+				//glUniform1i(eff.get_uniform_location("tex"), 1);
 
 				// Render mesh
 				renderer::render(m);
@@ -436,7 +439,6 @@ void pass(bool no_water)
 			glUniformMatrix4fv(low_poly_eff.get_uniform_location("M"), 1, GL_FALSE, value_ptr(M));
 			// Set N matrix uniform - remember - 3x3 matrix
 			glUniformMatrix3fv(low_poly_eff.get_uniform_location("N"), 1, GL_FALSE, value_ptr(m.get_transform().get_normal_matrix()));
-			cout << "land: " <<  m.get_transform().get_normal_matrix()[0][1] << endl;
 			// Bind material
 			renderer::bind(m.get_material(), "mat");
 			// Bind light
