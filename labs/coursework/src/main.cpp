@@ -66,6 +66,7 @@ depth_buffer depth;
 
 int i;
 float dt;
+bool pause = false;
 
 vector<vec3> norms;
 
@@ -209,9 +210,21 @@ bool load_content() {
 
 bool update(float delta_time)
 {
-	i++;
-	dt += delta_time;
+	
 
+	
+	if (glfwGetKey(renderer::get_window(), GLFW_KEY_P))
+		pause = !pause;
+
+	if (pause)
+	{
+		dt = dt;
+	}
+	else
+	{
+		i++;
+		dt += delta_time;
+	}
 
 	//choose free
 	if (glfwGetKey(renderer::get_window(), GLFW_KEY_1))

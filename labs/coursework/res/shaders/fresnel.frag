@@ -154,7 +154,7 @@ vec4 Fresnel(vec4 lit_colour)
 {
     vec3 view_dir = normalize(eye_pos - world_position);
     float opacity = 0;
-	vec4 transparent = vec4(1, 1, 1, 0);
+	vec4 transparent = vec4(1, 1, 1, 0.2);
     //dot of view and norm = cos(angle) --- where 90 degree angle to norm = cos(90) = zero opacity
 	vec4 tex_colour = texture(refraction_tex, tex_coord);
 	tex_colour.a = 1;

@@ -29,11 +29,11 @@ layout(location = 4) out flat vec4 debug_colours;
 
 void main()
 {
-	float p = /*amplitude*/0.5 * (cos(position.x/20*(2*M_PI) * (3 /*frequency*/) + offset.x));
-	p +=  0.5 * (cos(position.z/20*2*M_PI * 3 + offset.x));
-	p *= 10;
+	float p = /*amplitude*/0.3 * (cos(position.x/20*(2*M_PI) * (2 /*frequency*/) + offset.x));
+	p +=  0.3 * (cos(position.z/20*2*M_PI * 2 + offset.x));
+	p *= 10000000;
 	round(p);
-	p /= 10;
+	p /= 10000000;
   	gl_Position = MVP * vec4(position.x, p, position.z, 1);
 
 	// Output texture coordinate to fragement shader
